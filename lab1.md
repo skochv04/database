@@ -8,30 +8,13 @@ widoki, funkcje, procedury, triggery
 ---
 
 
-Imiona i nazwiska autorów :
+Imiona i nazwiska autorów : Stas Kochevenko & Wiktor Dybalski
 
 ---
-<style>
-  {
-    font-size: 16pt;
-  }
-</style> 
-
-<style scoped>
- li, p {
-    font-size: 14pt;
-  }
-</style> 
-
-<style scoped>
- pre {
-    font-size: 10pt;
-  }
-</style> 
 
 # Tabele
 
-![](_img/ora-trip1-0.png)
+![](img/ora-trip1-0.png)
 
 
 - `Trip`  - wycieczki
