@@ -286,11 +286,11 @@ INNER JOIN trip t on r.TRIP_ID = t.TRIP_ID
 
 Tworzenie funkcji pobierających dane/tabele. Podobnie jak w poprzednim przykładzie należy przygotować kilka funkcji ułatwiających dostęp do danych
 
-Procedury:
+Funkcje:
 - `f_trip_participants`
 	- zadaniem funkcji jest zwrócenie listy uczestników wskazanej wycieczki
 	- parametry funkcji: `trip_id`
-	- funkcja zwraca podobny zestaw danych jak widok  `vw_eservation`
+	- funkcja zwraca podobny zestaw danych jak widok  `vw_reservation`
 -  `f_person_reservations`
 	- zadaniem funkcji jest zwrócenie listy rezerwacji danej osoby 
 	- parametry funkcji: `person_id`
