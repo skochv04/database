@@ -311,7 +311,37 @@ Proponowany zestaw funkcji można rozbudować wedle uznania/potrzeb
 # Zadanie 2  - rozwiązanie
 
 ```sql
+CREATE OR REPLACE TYPE ob_trip_participants AS OBJECT (
+    reservation_id INT,
+    country varchar(50),
+    trip_date date,
+    trip_name varchar(100),
+    firstname VARCHAR2(50),
+    lastname VARCHAR2(50),
+    status CHAR(1),
+    trip_id int,
+    person_id int
+);
 
+create or replace type tab_trip_participants is table of ob_trip_participants;
+
+create or replace function f_trip_participants(trip_id int)
+    return tab_trip_participants
+as
+    result tab_trip_participants;
+begin
+    select ob_trip_participants(vw_r.RESERVATION_ID, vw_r.COUNTRY, vw_r.TRIP_DATE, vw_r.TRIP_NAME, vw_r.FIRSTNAME, vw_r.LASTNAME, vw_r.STATUS, vw_r.TRIP_ID, vw_r.PERSON_ID)
+    bulk collect
+    into result
+    from vw_reservation vw_r
+    where vw_r.TRIP_ID = f_trip_participants.trip_id;
+
+    return result;
+end;
+
+-----------
+select * from VW_RESERVATION where VW_RESERVATION.TRIP_ID = 2;
+select * from f_trip_participants(2)
 -- wyniki, kod, zrzuty ekranów, komentarz ...
 
 ```
