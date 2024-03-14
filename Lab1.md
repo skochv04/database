@@ -363,6 +363,43 @@ end;
 -----------
 select * from VW_RESERVATION where VW_RESERVATION.TRIP_ID = 2;
 select * from f_trip_participants(2)
+
+/*f_available_trips_to
+zadaniem funkcji jest zwrócenie listy wycieczek do wskazanego kraju, dostępnych w zadanym okresie czasu (od date_from do date_to)
+parametry funkcji: country, date_from, date_to*/
+
+select * from VW_TRIP;
+select * from VW_AVAILABLE_TRIP;
+
+CREATE OR REPLACE TYPE ob_trip AS OBJECT (
+    trip_id int,
+    country varchar(50),
+    trip_date date,
+    trip_name varchar(100),
+    max_no_places int,
+    no_available_places int
+);
+
+create or replace type tab_trip is table of ob_trip;
+
+create or replace function f_available_trips_to(country varchar(50), date_from date, date_to date)
+    return tab_trip
+as
+    result tab_trip;
+begin
+    select ob_trip(vw_av.TRIP_ID, vw_av.COUNTRY, vw_av.TRIP_DATE, vw_av.TRIP_NAME, vw_av.MAX_NO_PLACES, vw_av.NO_AVAILABLE_PLACES)
+    bulk collect
+    into result
+    from vw_available_trip vw_av
+    where vw_av.COUNTRY = f_available_trips_to.country and vw_av.TRIP_DATE between date_from and date_to;
+
+    return result;
+end;
+-------------
+select * from VW_AVAILABLE_TRIP vw_av where vw_av.COUNTRY = 'Francja' and vw_av.TRIP_DATE between TO_DATE('2023-01-01', 'YYYY-MM-DD') AND TO_DATE('2023-12-31', 'YYYY-MM-DD');
+select * from f_available_trips_to('Francja', '2023-01-01',  '2023-12-31');
+-------------
+
 -- wyniki, kod, zrzuty ekranów, komentarz ...
 
 ```
