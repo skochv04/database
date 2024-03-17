@@ -441,9 +441,106 @@ Proponowany zestaw procedur można rozbudować wedle uznania/potrzeb
 # Zadanie 3  - rozwiązanie
 
 ```sql
+-- p_add_reservation
+CREATE OR REPLACE PROCEDURE p_add_reservation(
+    p_trip_id IN NUMBER,
+    p_person_id IN NUMBER
+)
+IS
+    v_trip_date DATE;
+    v_available_seats NUMBER;
+    v_reservation_id NUMBER;
+BEGIN
+--  Validating
+    SELECT TRIP_DATE INTO v_trip_date from TRIP
+    WHERE TRIP_ID = p_trip_id;
 
--- wyniki, kod, zrzuty ekranów, komentarz ...
+    IF v_trip_date IS NULL THEN
+        RAISE_APPLICATION_ERROR(-20001, 'The specified trip does not exist');
+    END IF;
 
+    IF v_trip_date <= SYSDATE THEN
+        RAISE_APPLICATION_ERROR(-20002, 'The trip has already taken place! :(');
+    END IF;
+
+    SELECT NO_AVAILABLE_PLACES INTO v_available_seats FROM VW_TRIP
+    WHERE TRIP_ID = p_trip_id;
+
+    IF v_available_seats <= 0 THEN
+        RAISE_APPLICATION_ERROR(-20003, 'There are no available places on this trip.! :(');
+    END IF;
+
+--  Add reservation
+    INSERT INTO RESERVATION (TRIP_ID, PERSON_ID, STATUS)
+    VALUES (p_trip_id, p_person_id, 'N')
+    RETURNING RESERVATION_ID INTO v_reservation_id;
+
+    IF v_reservation_id IS NULL THEN
+        RAISE_APPLICATION_ERROR(-20004, 'Failed to get reservation_id! :(');
+    END IF;
+
+    INSERT INTO LOG (RESERVATION_ID, LOG_DATE, STATUS)
+    VALUES  (v_reservation_id, SYSDATE, 'N');
+
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Reservation add successfully!');
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('ERROR: ' || SQLERRM);
+END;
+
+
+
+-- p_modify_reservation_status
+CREATE OR REPLACE PROCEDURE p_modify_reservation_status (
+    p_reservation_id NUMBER,
+    p_status CHAR
+)
+IS
+    v_current_status CHAR;
+    v_trip_date DATE;
+    v_available_seats NUMBER;
+BEGIN
+    SELECT STATUS INTO v_current_status FROM RESERVATION
+    WHERE RESERVATION_ID = p_reservation_id;
+
+    IF v_current_status IS NULL THEN
+        RAISE_APPLICATION_ERROR(-20005, 'The specified reservation does not exist! :(');
+    END IF;
+
+    IF p_status = 'C' THEN
+        SELECT TRIP_DATE INTO v_trip_date FROM TRIP
+        WHERE TRIP_ID = (SELECT TRIP_ID FROM RESERVATION WHERE RESERVATION_ID = p_reservation_id);
+
+        IF v_trip_date <= SYSDATE THEN
+            RAISE_APPLICATION_ERROR(-20006, 'Cannot cancel reservation for past trip! :(');
+        END IF;
+    END IF;
+    IF p_status = 'N' AND v_current_status = 'C' THEN
+        SELECT NO_AVAILABLE_PLACES INTO v_available_seats FROM VW_TRIP
+        WHERE TRIP_ID = (SELECT TRIP_ID FROM RESERVATION WHERE RESERVATION_ID = p_reservation_id);
+
+        IF v_available_seats IS NULL OR v_available_seats <= 0 THEN
+            RAISE_APPLICATION_ERROR(-20007, 'Cannot create reservation, no available places on trip! :(');
+        END IF;
+    END IF;
+
+    UPDATE RESERVATION SET STATUS = p_status
+    WHERE RESERVATION_ID = p_reservation_id;
+
+    INSERT INTO LOG (RESERVATION_ID, LOG_DATE, STATUS)
+    VALUES  (p_reservation_id, SYSDATE, p_status);
+
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Reservation status modified successfully!');
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('ERROR: ' || SQLERRM);
+END;
+
+-- p_modify_max_no_places
 ```
 
 
