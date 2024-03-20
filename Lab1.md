@@ -301,14 +301,14 @@ Proponowany zestaw widoków można rozbudować wedle uznania/potrzeb
 
 ```sql
 -- vw_reservation 
-create view VW_RESERVATION as
+create or replace view VW_RESERVATION as
 SELECT  reservation_id, country, trip_date, trip_name, firstname, lastname, status, t.trip_id, p.person_id
 FROM RESERVATION r
 INNER JOIN person p on r.PERSON_ID = p.PERSON_ID
 INNER JOIN trip t on r.TRIP_ID = t.TRIP_ID
 
 -- vw_trip
-create view VW_TRIP as
+create or replace view VW_TRIP as
 SELECT  t.trip_id, country, trip_date, trip_name, max_no_places,
         CASE
             WHEN (t.max_no_places - NVL(COUNT(r.trip_id), 0)) < 0 THEN 0
@@ -319,16 +319,9 @@ LEFT JOIN RESERVATION r on t.TRIP_ID = r.TRIP_ID
 GROUP BY t.trip_id, t.country, t.trip_date, t.trip_name, t.max_no_places
 
 -- vw_available_trip
-create view VW_AVAILABLE_TRIP as
-SELECT t.trip_id, country, trip_date, trip_name, max_no_places,
-        CASE
-            WHEN (t.max_no_places - NVL(COUNT(r.trip_id), 0)) < 0 THEN 0
-            ELSE (t.max_no_places - NVL(COUNT(r.trip_id), 0))
-        END AS no_available_places
-FROM TRIP t
-LEFT JOIN RESERVATION r on t.TRIP_ID = r.TRIP_ID
-GROUP BY t.trip_id, t.country, t.trip_date, t.trip_name, t.max_no_places
-HAVING (t.max_no_places - NVL(COUNT(r.trip_id), 0)) > 0
+create or replace view VW_AVAILABLE_TRIP as
+SELECT * FROM VW_TRIP
+    WHERE TRIP_DATE > SYSDATE AND NO_AVAILABLE_PLACES > 0;
 ```
 
 
