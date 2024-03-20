@@ -306,6 +306,11 @@ SELECT  reservation_id, country, trip_date, trip_name, firstname, lastname, stat
 FROM RESERVATION r
 INNER JOIN person p on r.PERSON_ID = p.PERSON_ID
 INNER JOIN trip t on r.TRIP_ID = t.TRIP_ID
+```
+
+![](img/zad1-1.png)
+
+```sql
 
 -- vw_trip
 create or replace view VW_TRIP as
@@ -317,12 +322,18 @@ SELECT  t.trip_id, country, trip_date, trip_name, max_no_places,
 FROM TRIP t
 LEFT JOIN RESERVATION r on t.TRIP_ID = r.TRIP_ID
 GROUP BY t.trip_id, t.country, t.trip_date, t.trip_name, t.max_no_places
+```
 
+![](img/zad1-2.png)
+
+```sql
 -- vw_available_trip
 create or replace view VW_AVAILABLE_TRIP as
 SELECT * FROM VW_TRIP
     WHERE TRIP_DATE > SYSDATE AND NO_AVAILABLE_PLACES > 0;
 ```
+
+![](img/zad1-3.png)
 
 
 ---
@@ -350,10 +361,62 @@ Funkcje powinny zwracać tabelę/zbiór wynikowy. Należy rozważyć dodanie kon
 Czy kontrola parametrów w przypadku funkcji ma sens?
 - jakie są zalety/wady takiego rozwiązania?
 
+Mimo tego, że funkcje mogą zwracać tabele, jak widoki albo polecenie "select", kontrola parametrów w przypadku funkcji ma sens. W taki sposób możemy na przykład odróżnić dwie sytuacje: gdy dane o takim parametrze nie istnieją i gdy o takim parametrze istnieją, ale są nie zgodne z warunkiem funkcji.
+
+Wadą takiego rozwiązania może być dość duży, czasem nieczytelny kod, a więc są kilka sposobów na uproszczenie tej funkcji, na przykład przez zdefiniowanie funkcji pomocniczej.
+
 Proponowany zestaw funkcji można rozbudować wedle uznania/potrzeb
 - np. można dodać nowe/pomocnicze funkcje/procedury
 
 # Zadanie 2  - rozwiązanie
+
+- f_trip_exist (pomocnicza)
+
+```sql
+create or replace function f_trip_exist(trip int)
+    return boolean
+as
+    exist number;
+begin
+    select case
+            when exists(select * from TRIP where TRIP.TRIP_ID = trip) then 1
+            else 0
+           end
+    into exist from dual;
+
+    if exist = 1 then
+        return true;
+    else
+        return false;
+    end if;
+end;
+
+```
+
+- f_person_exist (pomocnicza)
+
+```sql
+create or replace function f_person_exist(person int)
+    return boolean
+as
+    exist number;
+begin
+    select case
+            when exists(select * from PERSON where PERSON.PERSON_ID = person) then 1
+            else 0
+           end
+    into exist from dual;
+
+    if exist = 1 then
+        return true;
+    else
+        return false;
+    end if;
+end;
+
+```
+
+- f_trip_participants
 
 ```sql
 CREATE OR REPLACE TYPE ob_trip_participants AS OBJECT (
@@ -375,6 +438,10 @@ create or replace function f_trip_participants(trip_id int)
 as
     result tab_trip_participants;
 begin
+    if not f_trip_exist(trip_id) then
+        raise_application_error(-20001, 'trip not found');
+    end if;
+
     select ob_trip_participants(vw_r.RESERVATION_ID, vw_r.COUNTRY, vw_r.TRIP_DATE, vw_r.TRIP_NAME, vw_r.FIRSTNAME, vw_r.LASTNAME, vw_r.STATUS, vw_r.TRIP_ID, vw_r.PERSON_ID)
     bulk collect
     into result
@@ -383,11 +450,38 @@ begin
 
     return result;
 end;
+```
 
------------
-select * from VW_RESERVATION where VW_RESERVATION.TRIP_ID = 2;
-select * from f_trip_participants(2)
+Przykład dla trip_id = 2:
 
+![](img/zad2-1.png)
+
+- f_person_reservations
+
+```sql
+create or replace function f_person_reservations(person_id int)
+    return tab_trip_participants
+as
+    result tab_trip_participants;
+begin
+    if not f_person_exist(person_id) then
+        raise_application_error(-20001, 'person not found');
+    end if;
+    select ob_trip_participants(vw_r.RESERVATION_ID, vw_r.COUNTRY, vw_r.TRIP_DATE, vw_r.TRIP_NAME, vw_r.FIRSTNAME, vw_r.LASTNAME, vw_r.STATUS, vw_r.TRIP_ID, vw_r.PERSON_ID)
+    bulk collect
+    into result
+    from vw_reservation vw_r
+    where vw_r.PERSON_ID = f_person_reservations.person_id;
+
+    return result;
+end;
+```
+
+Przykład dla person_id = 4:
+
+![](img/zad2-2.png)
+
+```sql
 /*f_available_trips_to
 zadaniem funkcji jest zwrócenie listy wycieczek do wskazanego kraju, dostępnych w zadanym okresie czasu (od date_from do date_to)
 parametry funkcji: country, date_from, date_to*/
@@ -423,8 +517,6 @@ end;
 select * from VW_AVAILABLE_TRIP vw_av where vw_av.COUNTRY = 'Francja' and vw_av.TRIP_DATE between TO_DATE('2023-01-01', 'YYYY-MM-DD') AND TO_DATE('2023-12-31', 'YYYY-MM-DD');
 select * from f_available_trips_to('Francja', '2023-01-01',  '2023-12-31');
 -------------
-
--- wyniki, kod, zrzuty ekranów, komentarz ...
 
 ```
 
