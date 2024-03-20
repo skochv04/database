@@ -227,28 +227,52 @@ w szczególności dokument: `1_modyf.pdf`
 
 ```sql
 
-insert into trip(trip_name, country, trip_date, max_no_places) values ('Wycieczka do Stolicy', 'Warszawa', to_date('2023-09-02', 'YYYY-MM-DD'), 5);
-insert into trip(trip_name, country, trip_date, max_no_places) values ('Wycieczka do Stolicy', 'Warszawa', to_date('2024-12-02', 'YYYY-MM-DD'), 2);
-
-INSERT INTO Person (firstname, lastname) VALUES ('Jan', 'Janowski');
-INSERT INTO Person (firstname, lastname) VALUES ('Anna', 'Nowak');
-INSERT INTO Person (firstname, lastname) VALUES ('Piotr', 'Wiśniewski');
-
-
-Delete from PERSON where PERSON_ID > 20 and PERSON_ID < 28;
-Delete from TRIP where TRIP.TRIP_ID > 20 and TRIP.TRIP_ID < 25;
-
-SELECT * FROM TRIP;
-SELECT * FROM RESERVATION;
-SELECT * FROM PERSON;
-SELECT * FROM LOG;
+begin
+    insert into log(reservation_id, log_date, status)
+    values (5, TO_DATE('2024-06-04','YYYY-MM-DD'), 'P');
+    insert into log(reservation_id, log_date, status)
+    values (NULL, TO_DATE('2024-06-04','YYYY-MM-DD'), 'P');
+    dbms_output.put_line('OK');
+end;
 
 ```
-Możemy zauważyć, że w języku PL/SQL jeśli mamy np operacje dodawania 2 wierszy w jednym bloku "BEGIN-END", to w przypadku, gdy 2 polecenie kończy się błędem i nie obsługujemy ten błąd, żaden wiersz nie zostanie dodany, na zewnątrz zostanie wyrzucony wyjątek. 
+Spróbujmy preprowadzić eksperyment. Nie mamy rekordów w tabeli "Log":
 
-Natomiast jeżelibyśmy wykonali to samo w języku Transact-SQL wewnątrz "BEGIN TRAN-COMMIT TRAN", pierwszy wiersz zostałby dodany do bazy, bo mimo że 2 polecenie kończy się błędem, to nie jest błąd krytyczny. Aby osiągnąć efekt, żeby cała sekwencja została wycofana w przypadku takiego błędu w języku Transact-SQL, możemy skorzystać z "TRY-CATCH", i w bloku "CATCH" wykonać "rollback tran".
+![](img/zad0-1.png)
 
-W przypadku, gdy obsłużymy wyjątek spowodowany 2im poleceniem w języku PL/SQL i nie wyrzucimy "raise", to będziemy mieli 2 sytuacje: jeśli jesteśmy w trybie Auto-Commit, to ten poprawny wiersz zostanie dopisany do bazy, a jeśli jesteśmy w trybie Manual, to mamy jeszcze możliwość wykonania polecenia "rollback".
+Następnie wstawimy bezbłędne dane:
+
+![](img/zad0-2.png)
+
+Wstawienie się udało, przekonajmy się w tym:
+
+![](img/zad0-3.png)
+
+Następnie usuniemy ten rekord:
+
+![](img/zad0-4.png)
+
+Usunięcie się udało, przekonajmy się w tym:
+
+![](img/zad0-5.png)
+
+A teraz spróbujmy dodać kolejno prawidłowe, a następnie nieprawidłowe dane (resrevation_id nie może być NULLem):
+
+![](img/zad0-6.png)
+
+Widzimy error:
+
+![](img/zad0-7.png)
+
+W wyniku tego polecenia żaden wiersz nie został dodany:
+
+![](img/zad0-8.png)
+
+Możemy zauważyć, że w języku PL/SQL jeśli mamy na pryzkład operacje dodawania 2 wierszy w jednym bloku "BEGIN-END", to w przypadku, gdy 2-ie polecenie kończy się błędem i nie obsługujemy ten błąd, żaden wiersz nie zostanie dodany, na zewnątrz zostanie wyrzucony wyjątek. 
+
+Natomiast jeżelibyśmy wykonali to samo w języku Transact-SQL wewnątrz "BEGIN TRAN-COMMIT TRAN", pierwszy wiersz zostałby dodany do bazy, bo mimo że 2-ie polecenie kończy się błędem, to nie jest błąd krytyczny. Aby osiągnąć taki efekt, żeby cała sekwencja została wycofana w przypadku takiego błędu w języku Transact-SQL, możemy skorzystać z "TRY-CATCH", i w bloku "CATCH" wykonać "rollback tran".
+
+W przypadku, gdy obsłużymy wyjątek spowodowany 2-im poleceniem w języku PL/SQL i nie wyrzucimy "raise", to będziemy mieli 2 sytuacje: jeśli jesteśmy w trybie Auto-Commit, to ten poprawny wiersz zostanie dopisany do bazy, a jeśli jesteśmy w trybie Manual, to mamy jeszcze możliwość wykonania polecenia "rollback".
 
 Oprócz tego, w języku PL/SQL nie mamy transakcji zagnieżdżonych.
 
