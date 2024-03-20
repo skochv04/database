@@ -361,9 +361,9 @@ Funkcje powinny zwracać tabelę/zbiór wynikowy. Należy rozważyć dodanie kon
 Czy kontrola parametrów w przypadku funkcji ma sens?
 - jakie są zalety/wady takiego rozwiązania?
 
-Mimo tego, że funkcje mogą zwracać tabele, jak widoki albo polecenie "select", kontrola parametrów w przypadku funkcji ma sens. W taki sposób możemy na przykład odróżnić dwie sytuacje: gdy dane o takim parametrze nie istnieją i gdy o takim parametrze istnieją, ale są nie zgodne z warunkiem funkcji.
+`Mimo tego, że funkcje mogą zwracać tabele, jak widoki albo polecenie "select", kontrola parametrów w przypadku funkcji ma sens. W taki sposób możemy na przykład odróżnić dwie sytuacje: gdy dane o takim parametrze nie istnieją i gdy o takim parametrze istnieją, ale są nie zgodne z warunkiem funkcji.`
 
-Wadą takiego rozwiązania może być dość duży, czasem nieczytelny kod, a więc są kilka sposobów na uproszczenie tej funkcji, na przykład przez zdefiniowanie funkcji pomocniczej.
+`Wadą takiego rozwiązania może być dość duży, czasem nieczytelny kod, a więc są kilka sposobów na uproszczenie tej funkcji, na przykład przez zdefiniowanie funkcji pomocniczej.`
 
 Proponowany zestaw funkcji można rozbudować wedle uznania/potrzeb
 - np. można dodać nowe/pomocnicze funkcje/procedury
@@ -480,6 +480,8 @@ end;
 Przykład dla person_id = 4:
 
 ![](img/zad2-2.png)
+
+- f_available_trips_to
 
 ```sql
 /*f_available_trips_to
