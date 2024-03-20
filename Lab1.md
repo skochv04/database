@@ -361,14 +361,14 @@ Funkcje powinny zwracać tabelę/zbiór wynikowy. Należy rozważyć dodanie kon
 Czy kontrola parametrów w przypadku funkcji ma sens?
 - jakie są zalety/wady takiego rozwiązania?
 
-`Mimo tego, że funkcje mogą zwracać tabele, jak widoki albo polecenie "select", kontrola parametrów w przypadku funkcji ma sens. W taki sposób możemy na przykład odróżnić dwie sytuacje: gdy dane o takim parametrze nie istnieją i gdy o takim parametrze istnieją, ale są nie zgodne z warunkiem funkcji.`
-
-`Wadą takiego rozwiązania może być dość duży, czasem nieczytelny kod, a więc są kilka sposobów na uproszczenie tej funkcji, na przykład przez zdefiniowanie funkcji pomocniczej.`
-
 Proponowany zestaw funkcji można rozbudować wedle uznania/potrzeb
 - np. można dodać nowe/pomocnicze funkcje/procedury
 
 # Zadanie 2  - rozwiązanie
+
+Mimo tego, że funkcje mogą zwracać tabele, jak widoki albo polecenie "select", kontrola parametrów w przypadku funkcji ma sens. W taki sposób możemy na przykład odróżnić dwie sytuacje: gdy dane o takim parametrze nie istnieją i gdy dane o takim parametrze istnieją, ale są nie zgodne z warunkiem funkcji.
+
+Wadą takiego rozwiązania może być dość duży, czasem nieczytelny kod, a więc są kilka sposobów na uproszczenie tej funkcji, na przykład przez zdefiniowanie funkcji pomocniczej.
 
 - f_trip_exist (pomocnicza)
 
@@ -484,12 +484,6 @@ Przykład dla person_id = 4:
 - f_available_trips_to
 
 ```sql
-/*f_available_trips_to
-zadaniem funkcji jest zwrócenie listy wycieczek do wskazanego kraju, dostępnych w zadanym okresie czasu (od date_from do date_to)
-parametry funkcji: country, date_from, date_to*/
-
-select * from VW_TRIP;
-select * from VW_AVAILABLE_TRIP;
 
 CREATE OR REPLACE TYPE ob_trip AS OBJECT (
     trip_id int,
@@ -502,11 +496,15 @@ CREATE OR REPLACE TYPE ob_trip AS OBJECT (
 
 create or replace type tab_trip is table of ob_trip;
 
-create or replace function f_available_trips_to(country varchar(50), date_from date, date_to date)
+create or replace function f_available_trips_to(country trip.country%TYPE, date_from date, date_to date)
     return tab_trip
 as
     result tab_trip;
 begin
+    if date_from > date_to then
+        raise_application_error(-20001, 'incorrect date of trip');
+    end if;
+
     select ob_trip(vw_av.TRIP_ID, vw_av.COUNTRY, vw_av.TRIP_DATE, vw_av.TRIP_NAME, vw_av.MAX_NO_PLACES, vw_av.NO_AVAILABLE_PLACES)
     bulk collect
     into result
@@ -515,13 +513,11 @@ begin
 
     return result;
 end;
--------------
-select * from VW_AVAILABLE_TRIP vw_av where vw_av.COUNTRY = 'Francja' and vw_av.TRIP_DATE between TO_DATE('2023-01-01', 'YYYY-MM-DD') AND TO_DATE('2023-12-31', 'YYYY-MM-DD');
-select * from f_available_trips_to('Francja', '2023-01-01',  '2023-12-31');
--------------
 
 ```
+Przykład dla country = 'Francja':
 
+![](img/zad2-3.png)
 
 ---
 # Zadanie 3  - procedury
