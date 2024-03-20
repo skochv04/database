@@ -390,7 +390,6 @@ begin
         return false;
     end if;
 end;
-
 ```
 
 - f_person_exist (pomocnicza)
@@ -413,7 +412,50 @@ begin
         return false;
     end if;
 end;
+```
 
+- f_reservation_exist (pomocnicza)
+
+```sql
+create or replace function f_reservation_exist(reservation int)
+    return boolean
+as
+    exist number;
+begin
+    select case
+            when exists(select * from RESERVATION where RESERVATION.RESERVATION_ID = reservation) then 1
+            else 0
+           end
+    into exist from dual;
+
+    if exist = 1 then
+        return true;
+    else
+        return false;
+    end if;
+end;
+```
+
+- f_trip_is_available (pomocnicza)
+
+```sql
+create or replace function f_trip_is_available(trip int)
+    return boolean
+as
+    exist number;
+begin
+    select case
+            when exists(select * from VW_AVAILABLE_TRIP AV where AV.TRIP_ID = trip) then 1
+            else 0
+           end
+    into exist from dual;
+
+    if exist = 1 then
+        return true;
+    else
+        return false;
+    end if;
+end;
 ```
 
 - f_trip_participants
@@ -525,7 +567,8 @@ Przykład dla country = 'Francja':
 
 Tworzenie procedur modyfikujących dane. Należy przygotować zestaw procedur pozwalających na modyfikację danych oraz kontrolę poprawności ich wprowadzania
 
-Procedury
+
+Procedury:
 - `p_add_reservation`
 	- zadaniem procedury jest dopisanie nowej rezerwacji
 	- parametry: `trip_id`, `person_id`, 
@@ -536,9 +579,6 @@ Procedury
 	- parametry: `reservation_id`, `status` 
 	- procedura powinna kontrolować czy możliwa jest zmiana statusu, np. zmiana statusu już anulowanej wycieczki (przywrócenie do stanu aktywnego nie zawsze jest możliwa – może już nie być miejsc)
 	- procedura powinna również dopisywać inf. do tabeli `log`
-
-
-Procedury:
 - `p_modify_max_no_places`
 	- zadaniem procedury jest zmiana maksymalnej liczby miejsc na daną wycieczkę 
 	- parametry: `trip_id`, `max_no_places`
