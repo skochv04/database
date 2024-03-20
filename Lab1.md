@@ -244,6 +244,13 @@ SELECT * FROM PERSON;
 SELECT * FROM LOG;
 
 ```
+Możemy zauważyć, że w języku PL/SQL jeśli mamy np operacje dodawania 2 wierszy w jednym bloku "BEGIN-END", to w przypadku, gdy 2 polecenie kończy się błędem i nie obsługujemy ten błąd, żaden wiersz nie zostanie dodany, na zewnątrz zostanie wyrzucony wyjątek. 
+
+Natomiast jeżelibyśmy wykonali to samo w języku Transact-SQL wewnątrz "BEGIN TRAN-COMMIT TRAN", pierwszy wiersz zostałby dodany do bazy, bo mimo że 2 polecenie kończy się błędem, to nie jest błąd krytyczny. Aby osiągnąć efekt, żeby cała sekwencja została wycofana w przypadku takiego błędu w języku Transact-SQL, możemy skorzystać z "TRY-CATCH", i w bloku "CATCH" wykonać "rollback tran".
+
+W przypadku, gdy obsłużymy wyjątek spowodowany 2im poleceniem w języku PL/SQL i nie wyrzucimy "raise", to będziemy mieli 2 sytuacje: jeśli jesteśmy w trybie Auto-Commit, to ten poprawny wiersz zostanie dopisany do bazy, a jeśli jesteśmy w trybie Manual, to mamy jeszcze możliwość wykonania polecenia "rollback".
+
+Oprócz tego, w języku PL/SQL nie mamy transakcji zagnieżdżonych.
 
 ---
 # Zadanie 1 - widoki
