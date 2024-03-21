@@ -299,8 +299,9 @@ Proponowany zestaw widoków można rozbudować wedle uznania/potrzeb
 
 # Zadanie 1  - rozwiązanie
 
-```sql
--- vw_reservation 
+- vw_reservation
+
+```sql 
 create or replace view VW_RESERVATION as
 SELECT  reservation_id, country, trip_date, trip_name, firstname, lastname, status, t.trip_id, p.person_id
 FROM RESERVATION r
@@ -310,9 +311,9 @@ INNER JOIN trip t on r.TRIP_ID = t.TRIP_ID
 
 ![](img/zad1-1.png)
 
-```sql
+- vw_trip
 
--- vw_trip
+```sql
 create or replace view VW_TRIP as
 SELECT  t.trip_id, country, trip_date, trip_name, max_no_places,
         CASE
@@ -320,14 +321,15 @@ SELECT  t.trip_id, country, trip_date, trip_name, max_no_places,
             ELSE (t.max_no_places - NVL(COUNT(r.trip_id), 0))
         END AS no_available_places
 FROM TRIP t
-LEFT JOIN RESERVATION r on t.TRIP_ID = r.TRIP_ID
+LEFT JOIN (SELECT * FROM RESERVATION WHERE STATUS != 'C') r on t.TRIP_ID = r.TRIP_ID
 GROUP BY t.trip_id, t.country, t.trip_date, t.trip_name, t.max_no_places
 ```
 
 ![](img/zad1-2.png)
 
+- vw_available_trip
+
 ```sql
--- vw_available_trip
 create or replace view VW_AVAILABLE_TRIP as
 SELECT * FROM VW_TRIP
     WHERE TRIP_DATE > SYSDATE AND NO_AVAILABLE_PLACES > 0;
@@ -597,7 +599,7 @@ Proponowany zestaw procedur można rozbudować wedle uznania/potrzeb
 - p_add_reservation
 
 ```sql
-CREATE OR REPLACE PROCEDURE p_add_reservation(
+create or replace PROCEDURE p_add_reservation(
     p_trip_id trip.trip_id%TYPE,
     p_person_id person.person_id%TYPE
 )
@@ -616,11 +618,11 @@ BEGIN
     end if;
 
     IF v_trip_date <= SYSDATE THEN
-        RAISE_APPLICATION_ERROR(-20002, 'The trip has already taken place! :(');
+        RAISE_APPLICATION_ERROR(-20002, 'The trip has already taken place!');
     END IF;
 
     IF not f_trip_is_available(p_trip_id) then
-        raise_application_error(-20003, 'There are no available places on this trip! :(');
+        raise_application_error(-20003, 'There are no available places on this trip!');
     end if;
 
 --  Add reservation
@@ -629,7 +631,7 @@ BEGIN
     RETURNING RESERVATION_ID INTO v_reservation_id;
 
     IF v_reservation_id IS NULL THEN
-        RAISE_APPLICATION_ERROR(-20004, 'Failed to get reservation_id! :(');
+        RAISE_APPLICATION_ERROR(-20004, 'Failed to get reservation_id!');
     END IF;
 
     INSERT INTO LOG (RESERVATION_ID, LOG_DATE, STATUS)
@@ -643,35 +645,41 @@ END;
 
 ```sql
 CREATE OR REPLACE PROCEDURE p_modify_reservation_status (
-    p_reservation_id IN NUMBER,
-    p_status IN CHAR
+    p_reservation_id reservation.reservation_id%TYPE,
+    p_status reservation.STATUS%TYPE
 )
-IS
+AS
     v_current_status CHAR;
     v_trip_date DATE;
-    v_available_seats NUMBER;
+    v_exists INTEGER;
 BEGIN
+    IF not f_reservation_exist(p_reservation_id) then
+        raise_application_error(-20000, 'Reservation not found!');
+    end if;
+
+    IF p_status NOT in ('N', 'P', 'C') then
+        RAISE_APPLICATION_ERROR(-20005, 'Status is not correct! Give one of the values "N", "P", "C"');
+    END IF;
+
     SELECT STATUS INTO v_current_status FROM RESERVATION
     WHERE RESERVATION_ID = p_reservation_id;
-
-    IF v_current_status IS NULL THEN
-        RAISE_APPLICATION_ERROR(-20005, 'The specified reservation does not exist! :(');
-    END IF;
 
     IF p_status = 'C' THEN
         SELECT TRIP_DATE INTO v_trip_date FROM TRIP
         WHERE TRIP_ID = (SELECT TRIP_ID FROM RESERVATION WHERE RESERVATION_ID = p_reservation_id);
 
         IF v_trip_date <= SYSDATE THEN
-            RAISE_APPLICATION_ERROR(-20006, 'Cannot cancel reservation for past trip! :(');
+            RAISE_APPLICATION_ERROR(-20006, 'Cannot cancel reservation for past trip!');
         END IF;
     END IF;
-    IF p_status = 'N' AND v_current_status = 'C' THEN
-        SELECT NO_AVAILABLE_PLACES INTO v_available_seats FROM VW_TRIP
+
+    IF v_current_status = 'C' THEN
+        SELECT COUNT(*) INTO v_exists
+        FROM VW_AVAILABLE_TRIP
         WHERE TRIP_ID = (SELECT TRIP_ID FROM RESERVATION WHERE RESERVATION_ID = p_reservation_id);
 
-        IF v_available_seats IS NULL OR v_available_seats <= 0 THEN
-            RAISE_APPLICATION_ERROR(-20007, 'Cannot create reservation, no available places on trip! :(');
+        IF v_exists = 0 THEN
+            RAISE_APPLICATION_ERROR(-20007, 'Cannot create reservation, no available places on trip!');
         END IF;
     END IF;
 
@@ -683,12 +691,17 @@ BEGIN
 
     COMMIT;
     DBMS_OUTPUT.PUT_LINE('Reservation status modified successfully!');
-EXCEPTION
-    WHEN OTHERS THEN
-        ROLLBACK;
-        DBMS_OUTPUT.PUT_LINE('ERROR: ' || SQLERRM);
 END;
 ```
+
+Przykładowe wywołania:
+
+![](img/ora-trip3-1.png)
+
+![](img/ora-trip3-2.png)
+
+![](img/ora-trip3-3.png)
+
 - p_modify_max_no_places
 
 ```sql
