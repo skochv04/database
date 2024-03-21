@@ -779,65 +779,60 @@ Należy przygotować procedury: `p_add_reservation_4`, `p_modify_reservation_sta
 
 # Zadanie 4  - rozwiązanie
 
-```sql
+- Add reservation Trigger 
 
--- Add reservation Trigger 
+```sql
 CREATE OR REPLACE TRIGGER trg_insert_log_reservation
 AFTER INSERT ON RESERVATION
 FOR EACH ROW
-DECLARE
-    v_reservation_id NUMBER := :new.reservation_id;
 BEGIN
     INSERT INTO LOG (RESERVATION_ID, LOG_DATE, STATUS)
-    VALUES (v_reservation_id, SYSDATE, 'N');
+    VALUES (:new.reservation_id, SYSDATE, :new.status);
 END;
+```
 
--- p_add_reservation_4
-CREATE OR REPLACE PROCEDURE p_add_reservation_4(
-    p_trip_id IN NUMBER,
-    p_person_id IN NUMBER
+- p_add_reservation_4
+
+```sql
+create or replace PROCEDURE p_add_reservation_4(
+    p_trip_id trip.trip_id%TYPE,
+    p_person_id person.person_id%TYPE
 )
-IS
-    v_trip_date DATE;
-    v_available_seats NUMBER;
-    v_reservation_id NUMBER;
+AS
+    v_trip_date trip.TRIP_DATE%TYPE;
+
 BEGIN
 --  Validating
-    SELECT TRIP_DATE INTO v_trip_date from TRIP
-    WHERE TRIP_ID = p_trip_id;
+    IF not f_trip_exist(p_trip_id) then
+        raise_application_error(-20000, 'Trip not found!');
+    end if;
 
-    IF v_trip_date IS NULL THEN
-        RAISE_APPLICATION_ERROR(-20001, 'The specified trip does not exist');
-    END IF;
+    IF not f_person_exist(p_person_id) then
+        raise_application_error(-20001, 'Person not found!');
+    end if;
+
+    SELECT TRIP_DATE INTO v_trip_date FROM TRIP WHERE TRIP_ID = p_trip_id;
 
     IF v_trip_date <= SYSDATE THEN
-        RAISE_APPLICATION_ERROR(-20002, 'The trip has already taken place! :(');
+        RAISE_APPLICATION_ERROR(-20002, 'The trip has already taken place!');
     END IF;
 
-    SELECT NO_AVAILABLE_PLACES INTO v_available_seats FROM VW_TRIP
-    WHERE TRIP_ID = p_trip_id;
-
-    IF v_available_seats <= 0 THEN
-        RAISE_APPLICATION_ERROR(-20003, 'There are no available places on this trip.! :(');
-    END IF;
+    IF not f_trip_is_available(p_trip_id) then
+        raise_application_error(-20003, 'There are no available places on this trip!');
+    end if;
 
 --  Add reservation
     INSERT INTO RESERVATION (TRIP_ID, PERSON_ID, STATUS)
-    VALUES (p_trip_id, p_person_id, 'N')
-    RETURNING RESERVATION_ID INTO v_reservation_id;
+    VALUES (p_trip_id, p_person_id, 'N');
 
     COMMIT;
-    DBMS_OUTPUT.PUT_LINE('Reservation add successfully!');
-EXCEPTION
-    WHEN OTHERS THEN
-        ROLLBACK;
-        DBMS_OUTPUT.PUT_LINE('ERROR: ' || SQLERRM);
+    DBMS_OUTPUT.PUT_LINE('Reservation added successfully!');
 END;
+```
 
+- Change status Trigger
 
-
-
--- Change status Trigger
+```sql
 CREATE OR REPLACE TRIGGER trg_modify_reservation_status
 AFTER UPDATE OF status ON RESERVATION
 FOR EACH ROW
@@ -914,7 +909,7 @@ END;
 
 Zmiana strategii kontroli dostępności miejsc. Realizacja przy pomocy triggerów
 
-Należy wprowadzić zmianę, która spowoduje, że kontrola dostępności miejsc na wycieczki (przy dodawaniu nowej rezerwacji, zmianie statusu) będzie realizowana przy pomocy trierów
+Należy wprowadzić zmianę, która spowoduje, że kontrola dostępności miejsc na wycieczki (przy dodawaniu nowej rezerwacji, zmianie statusu) będzie realizowana przy pomocy trigerów
 
 Triggery:
 - Trigger/triggery obsługujące: 
