@@ -934,11 +934,115 @@ Należy przygotować procedury: `p_add_reservation_5`, `p_modify_reservation_sta
 
 # Zadanie 5  - rozwiązanie
 
+- trg_add_reservation
+
 ```sql
-
--- wyniki, kod, zrzuty ekranów, komentarz ...
-
+CREATE OR REPLACE TRIGGER trg_add_reservation
+BEFORE INSERT ON RESERVATION
+FOR EACH ROW
+BEGIN
+    IF not f_trip_is_available(:new.trip_id) then
+        raise_application_error(-20003, 'There are no available places on this trip!');
+    END IF;
+END;
 ```
+
+- p_add_reservation_5
+
+```sql
+create or replace PROCEDURE p_add_reservation_5(
+    p_trip_id trip.trip_id%TYPE,
+    p_person_id person.person_id%TYPE
+)
+AS
+    v_trip_date trip.TRIP_DATE%TYPE;
+
+BEGIN
+--  Validating
+    IF not f_trip_exist(p_trip_id) then
+        raise_application_error(-20000, 'Trip not found!');
+    end if;
+
+    IF not f_person_exist(p_person_id) then
+        raise_application_error(-20001, 'Person not found!');
+    end if;
+
+    SELECT TRIP_DATE INTO v_trip_date FROM TRIP WHERE TRIP_ID = p_trip_id;
+
+    IF v_trip_date <= SYSDATE THEN
+        RAISE_APPLICATION_ERROR(-20002, 'The trip has already taken place!');
+    END IF;
+
+--  Add reservation
+    INSERT INTO RESERVATION (TRIP_ID, PERSON_ID, STATUS)
+    VALUES (p_trip_id, p_person_id, 'N');
+
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Reservation added successfully!');
+END;
+```
+
+- trg_modify_reservation_status
+
+```sql
+CREATE OR REPLACE TRIGGER trg_modify_reservation_status
+BEFORE UPDATE OF status ON RESERVATION
+FOR EACH ROW
+DECLARE
+    PRAGMA AUTONOMOUS_TRANSACTION;
+BEGIN
+    IF :new.STATUS = 'C' THEN
+        IF NOT f_trip_is_available(:new.TRIP_ID) THEN
+            RAISE_APPLICATION_ERROR(-20007, 'Cannot create reservation, no available places on trip!');
+        END IF;
+    END IF;
+END;
+```
+
+- p_modify_reservation_status_5
+
+```sql
+CREATE OR REPLACE PROCEDURE p_modify_reservation_status_5 (
+    p_reservation_id reservation.reservation_id%TYPE,
+    p_status reservation.STATUS%TYPE
+)
+AS
+    v_current_status CHAR;
+    v_trip_date DATE;
+BEGIN
+    IF not f_reservation_exist(p_reservation_id) then
+        raise_application_error(-20000, 'Reservation not found!');
+    end if;
+
+    IF p_status NOT in ('N', 'P', 'C') then
+        RAISE_APPLICATION_ERROR(-20005, 'Status is not correct! Give one of the values "N", "P", "C"');
+    END IF;
+
+    SELECT STATUS INTO v_current_status FROM RESERVATION
+    WHERE RESERVATION_ID = p_reservation_id;
+
+    IF p_status = 'C' THEN
+        SELECT TRIP_DATE INTO v_trip_date FROM TRIP
+        WHERE TRIP_ID = (SELECT TRIP_ID FROM RESERVATION WHERE RESERVATION_ID = p_reservation_id);
+
+        IF v_trip_date <= SYSDATE THEN
+            RAISE_APPLICATION_ERROR(-20006, 'Cannot cancel reservation for past trip!');
+        END IF;
+    END IF;
+
+    UPDATE RESERVATION SET STATUS = p_status
+    WHERE RESERVATION_ID = p_reservation_id;
+
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Reservation status modified successfully!');
+END;
+```
+
+Dwa powyższe triggery są proste w interpretacji i nie wymagają pokazywania przykładów, efekt końcowy nie różni się od pokazanych w poprzednich rozdzialach efektów.
+
+Triger, modyfikujący status rezerwacji korzysta z "PRAGMA AUTONOMOUS_TRANSACTION", dzięki czemu tworzy się nowa transakcja, niezależna od tej zewnętrznej i mamy możliwość sprawdzenia wyników funkcji, która korzysta z tabeli, która jest w trakcie modyfikowania. 
+
+Oprócz tego, skrócił się kod, ponieważ w tym triggerze mamy dostęp do nowych wstawianych danych, i jesteśmy w stanie stąd dowiedzieć się "trip_id", nie potrzebujemy komplikować kod, jak w przypadku poprzednich zadań.
 
 ---
 # Zadanie 6
