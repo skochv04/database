@@ -779,7 +779,7 @@ Należy przygotować procedury: `p_add_reservation_4`, `p_modify_reservation_sta
 
 # Zadanie 4  - rozwiązanie
 
-- Add reservation Trigger 
+- trg_insert_log_reservation
 
 ```sql
 CREATE OR REPLACE TRIGGER trg_insert_log_reservation
@@ -830,61 +830,59 @@ BEGIN
 END;
 ```
 
-- Change status Trigger
+- trg_modify_reservation_status
 
 ```sql
 CREATE OR REPLACE TRIGGER trg_modify_reservation_status
 AFTER UPDATE OF status ON RESERVATION
 FOR EACH ROW
-DECLARE
-    v_log_status CHAR;
 BEGIN
-    CASE
-        WHEN :new.STATUS = 'N' THEN
-            v_log_status := 'N';
-        WHEN :new.STATUS = 'P' THEN
-            v_log_status := 'P';
-        WHEN :new.STATUS = 'C' THEN
-            v_log_status := 'C';
-        ELSE
-            RAISE_APPLICATION_ERROR(-20009, 'ERROR');
-    END CASE;
-
-    INSERT INTO LOG (RESERVATION_ID, LOG_DATE, STATUS)
-    VALUES (:new.RESERVATION_ID, SYSDATE, v_log_status);
+    IF :new.STATUS != :old.STATUS THEN
+        INSERT INTO LOG (RESERVATION_ID, LOG_DATE, STATUS)
+        VALUES (:new.RESERVATION_ID, SYSDATE, :new.STATUS);
+    END IF;
 END;
+```
 
--- p_modify_reservation_status_4
+- p_modify_reservation_status_4
+
+```sql
 CREATE OR REPLACE PROCEDURE p_modify_reservation_status_4 (
-    p_reservation_id IN NUMBER,
-    p_status IN CHAR
+    p_reservation_id reservation.reservation_id%TYPE,
+    p_status reservation.STATUS%TYPE
 )
-IS
+AS
     v_current_status CHAR;
     v_trip_date DATE;
-    v_available_seats NUMBER;
+    v_exists INTEGER;
 BEGIN
+    IF not f_reservation_exist(p_reservation_id) then
+        raise_application_error(-20000, 'Reservation not found!');
+    end if;
+
+    IF p_status NOT in ('N', 'P', 'C') then
+        RAISE_APPLICATION_ERROR(-20005, 'Status is not correct! Give one of the values "N", "P", "C"');
+    END IF;
+
     SELECT STATUS INTO v_current_status FROM RESERVATION
     WHERE RESERVATION_ID = p_reservation_id;
-
-    IF v_current_status IS NULL THEN
-        RAISE_APPLICATION_ERROR(-20005, 'The specified reservation does not exist! :(');
-    END IF;
 
     IF p_status = 'C' THEN
         SELECT TRIP_DATE INTO v_trip_date FROM TRIP
         WHERE TRIP_ID = (SELECT TRIP_ID FROM RESERVATION WHERE RESERVATION_ID = p_reservation_id);
 
         IF v_trip_date <= SYSDATE THEN
-            RAISE_APPLICATION_ERROR(-20006, 'Cannot cancel reservation for past trip! :(');
+            RAISE_APPLICATION_ERROR(-20006, 'Cannot cancel reservation for past trip!');
         END IF;
     END IF;
-    IF p_status = 'N' AND v_current_status = 'C' THEN
-        SELECT NO_AVAILABLE_PLACES INTO v_available_seats FROM VW_TRIP
+
+    IF v_current_status = 'C' THEN
+        SELECT COUNT(*) INTO v_exists
+        FROM VW_AVAILABLE_TRIP
         WHERE TRIP_ID = (SELECT TRIP_ID FROM RESERVATION WHERE RESERVATION_ID = p_reservation_id);
 
-        IF v_available_seats IS NULL OR v_available_seats <= 0 THEN
-            RAISE_APPLICATION_ERROR(-20007, 'Cannot create reservation, no available places on trip! :(');
+        IF v_exists = 0 THEN
+            RAISE_APPLICATION_ERROR(-20007, 'Cannot create reservation, no available places on trip!');
         END IF;
     END IF;
 
@@ -893,15 +891,25 @@ BEGIN
 
     COMMIT;
     DBMS_OUTPUT.PUT_LINE('Reservation status modified successfully!');
-EXCEPTION
-    WHEN OTHERS THEN
-        ROLLBACK;
-        DBMS_OUTPUT.PUT_LINE('ERROR: ' || SQLERRM);
 END;
 
 ```
+Dwa powyższe triggery są proste w interpretacji i nie wymagają pokazywania przykładów, efekt końcowy nie różni się od pokazanych w poprzednim rozdziale efektów.
 
+- trg_forbid_reservation_deletion
 
+```sql
+CREATE OR REPLACE TRIGGER trg_forbid_reservation_deletion
+BEFORE DELETE ON RESERVATION
+FOR EACH ROW
+BEGIN
+    RAISE_APPLICATION_ERROR(-20001, 'Deleting rows from RESERVATION table is not allowed. You can only cancel the reservation');
+END;
+```
+
+Przykładowe wywołanie:
+
+![](img/zad4-1.png)
 
 ---
 # Zadanie 5  - triggery
