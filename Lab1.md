@@ -616,6 +616,8 @@ BEGIN
     IF not f_person_exist(p_person_id) then
         raise_application_error(-20001, 'Person not found!');
     end if;
+    
+    SELECT TRIP_DATE INTO v_trip_date FROM TRIP WHERE TRIP_ID = p_trip_id;
 
     IF v_trip_date <= SYSDATE THEN
         RAISE_APPLICATION_ERROR(-20002, 'The trip has already taken place!');
@@ -641,6 +643,12 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('Reservation added successfully!');
 END;
 ```
+Przykładowe wywołania:
+
+![](img/zad3-6.png)
+
+![](img/zad3-7.png)
+
 - p_modify_reservation_status
 
 ```sql
@@ -696,11 +704,11 @@ END;
 
 Przykładowe wywołania:
 
-![](img/ora-trip3-1.png)
+![](img/zad3-1.png)
 
-![](img/ora-trip3-2.png)
+![](img/zad3-2.png)
 
-![](img/ora-trip3-3.png)
+![](img/zad3-3.png)
 
 - p_modify_max_no_places
 
@@ -739,6 +747,13 @@ BEGIN
 END;
 ```
 
+Przykładowe wywołania:
+
+![](img/zad3-4.png)
+
+Zmiany w tabeli Log po kilku operacjach:
+
+![](img/zad3-5.png)
 
 ---
 # Zadanie 4  - triggery
