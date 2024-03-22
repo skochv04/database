@@ -1099,6 +1099,7 @@ BEGIN
     UPDATE TRIP SET NO_AVAILABLE_PLACES = p_no_available_places
     WHERE TRIP_ID = p_trip_id;
 
+    COMMIT;
     DBMS_OUTPUT.PUT_LINE('Number of available places modified successfully!');
 END;
 ```
@@ -1311,12 +1312,19 @@ Należy stworzyć nowe wersje tych widoków/procedur/triggerów (np. dodając do
 
 ```sql
 CREATE OR REPLACE TRIGGER trg_add_reservation_6b
-BEFORE INSERT ON RESERVATION
+AFTER INSERT ON RESERVATION
 FOR EACH ROW
 BEGIN
-    IF not f_trip_is_available(:new.trip_id) then
-        raise_application_error(-20003, 'There are no available places on this trip!');
-    ELSE p_update_no_available_places(:new.trip_id);
+    IF :new.status != :old.status THEN
+        IF :new.status = 'C' THEN
+            UPDATE TRIP
+                SET NO_AVAILABLE_PLACES = NO_AVAILABLE_PLACES + 1
+                WHERE TRIP_ID = :new.trip_id;
+        ELSE
+            UPDATE TRIP
+                SET NO_AVAILABLE_PLACES = NO_AVAILABLE_PLACES - 1
+                WHERE TRIP_ID = :new.trip_id;
+        end if;
     END IF;
 END;
 ```
@@ -1356,6 +1364,133 @@ BEGIN
 END;
 ```
 
+Przykładowe wywołanie:
+
+![](img/zad6b-1.png)
+
+![](img/zad6b-2.png)
+
+- trg_modify_reservation_status_6b
+
+```sql
+CREATE OR REPLACE TRIGGER trg_modify_reservation_status_6b
+AFTER UPDATE ON RESERVATION
+FOR EACH ROW
+BEGIN
+    IF :new.status != :old.status THEN
+        IF :new.status = 'C' THEN
+            UPDATE TRIP
+                SET NO_AVAILABLE_PLACES = NO_AVAILABLE_PLACES + 1
+                WHERE TRIP_ID = :new.trip_id;
+        ELSE
+            UPDATE TRIP
+                SET NO_AVAILABLE_PLACES = NO_AVAILABLE_PLACES - 1
+                WHERE TRIP_ID = :new.trip_id;
+        end if;
+    end if;
+END;
+```
+
+- p_modify_reservation_status_6b
+
+```sql
+create or replace PROCEDURE p_modify_reservation_status_6b (
+    p_reservation_id reservation.reservation_id%TYPE,
+    p_status reservation.STATUS%TYPE
+)
+AS
+    v_current_status CHAR;
+    v_trip_date DATE;
+    v_trip_id trip.trip_id%TYPE;
+BEGIN
+    IF not f_reservation_exist(p_reservation_id) then
+        raise_application_error(-20000, 'Reservation not found!');
+    end if;
+
+    IF p_status NOT in ('N', 'P', 'C') then
+        RAISE_APPLICATION_ERROR(-20005, 'Status is not correct! Give one of the values "N", "P", "C"');
+    END IF;
+
+    SELECT STATUS INTO v_current_status FROM RESERVATION
+    WHERE RESERVATION_ID = p_reservation_id;
+
+    SELECT TRIP_ID INTO v_trip_id FROM RESERVATION
+    WHERE RESERVATION_ID = p_reservation_id;
+
+    IF p_status = 'C' THEN
+        SELECT TRIP_DATE INTO v_trip_date FROM TRIP
+        WHERE TRIP_ID = v_trip_id;
+
+        IF v_trip_date <= SYSDATE THEN
+            RAISE_APPLICATION_ERROR(-20006, 'Cannot cancel reservation for past trip!');
+        END IF;
+    END IF;
+
+    UPDATE RESERVATION SET STATUS = p_status
+    WHERE RESERVATION_ID = p_reservation_id;
+
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Reservation status modified successfully!');
+END;
+```
+
+Przykładowe wywołanie:
+
+![](img/zad6b-2.png)
+
+![](img/zad6b-1.png)
+
+- trg_modify_max_no_places_6b
+
+```sql
+CREATE OR REPLACE TRIGGER trg_modify_max_no_places_6b
+BEFORE UPDATE ON TRIP
+FOR EACH ROW
+BEGIN
+     :new.NO_AVAILABLE_PLACES := :old.NO_AVAILABLE_PLACES + (:new.MAX_NO_PLACES - :old.max_no_places);
+END;
+```
+
+- p_modify_max_no_places_6b
+
+```sql
+create or replace PROCEDURE p_modify_max_no_places_6b (
+    p_trip_id trip.trip_id%TYPE,
+    p_max_no_places trip.max_no_places%TYPE
+)
+AS
+    v_current_max_no_places trip.max_no_places%TYPE;
+    v_no_available trip.max_no_places%TYPE;
+BEGIN
+    IF not f_trip_exist(p_trip_id) then
+        raise_application_error(-20006, 'Trip not found!');
+    end if;
+
+    SELECT MAX_NO_PLACES INTO v_current_max_no_places FROM TRIP
+    WHERE TRIP_ID = p_trip_id;
+
+    if v_current_max_no_places <= 0 then
+        raise_application_error(-20007, 'This number is smaller than 0!');
+    end if;
+
+    SELECT NO_AVAILABLE_PLACES INTO v_no_available FROM VW_TRIP
+    WHERE TRIP_ID = p_trip_id;
+
+    if p_max_no_places < v_current_max_no_places - v_no_available then
+        raise_application_error(-20008, 'This number is smaller than the number of reserved places!');
+    end if;
+
+    UPDATE TRIP SET MAX_NO_PLACES = p_max_no_places
+    WHERE TRIP_ID = p_trip_id;
+
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Max number of places modified successfully!');
+END;
+```
+
+![](img/zad6b-1.png)
+
+![](img/zad6b-3.png)
 
 # Zadanie 7 - podsumowanie
 
@@ -1363,6 +1498,5 @@ Porównaj sposób programowania w systemie Oracle PL/SQL ze znanym ci systemem/j
 
 ```sql
 
--- komentarz ...
 
 ```
