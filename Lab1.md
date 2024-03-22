@@ -1072,12 +1072,58 @@ alter table trip add
 
 # Zadanie 6  - rozwiązanie
 
+- p_update_no_available_places
+
 ```sql
+CREATE OR REPLACE PROCEDURE p_update_no_available_places (
+    p_trip_id trip.trip_id%TYPE
+)
+AS
+    p_no_available_places trip.no_available_places%TYPE;
+BEGIN
+    IF not f_trip_exist(p_trip_id) then
+        raise_application_error(-20000, 'Trip not found!');
+    end if;
 
--- wyniki, kod, zrzuty ekranów, komentarz ...
+    SELECT t.MAX_NO_PLACES - NVL(COUNT(r.TRIP_ID), 0)
+    INTO p_no_available_places
+    FROM TRIP t
+    LEFT JOIN RESERVATION r on STATUS != 'C' and r.TRIP_ID = t.TRIP_ID
+    where t.TRIP_ID = p_trip_id
+    GROUP BY t.trip_ID, t.MAX_NO_PLACES;
 
+    IF p_no_available_places < 0 THEN
+        p_no_available_places := 0;
+    end if;
+
+    UPDATE TRIP SET NO_AVAILABLE_PLACES = p_no_available_places
+    WHERE TRIP_ID = p_trip_id;
+
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Number of available places modified successfully!');
+END;
 ```
 
+- p_update_all_no_available_places
+
+```sql
+CREATE OR REPLACE PROCEDURE p_update_all_no_available_places
+AS
+BEGIN
+    FOR rec in (select * from trip) LOOP
+        p_update_no_available_places(rec.TRIP_ID);
+    end loop;
+
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('All trips number of available places modified successfully!');
+END;
+```
+
+Przykładowe wywołanie (przed wywołaniem / po wywołaniu):
+
+![](img/zad6-1.png)
+
+![](img/zad6-2.png)
 
 
 ---
