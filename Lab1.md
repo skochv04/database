@@ -991,7 +991,7 @@ FOR EACH ROW
 DECLARE
     PRAGMA AUTONOMOUS_TRANSACTION;
 BEGIN
-    IF :new.STATUS = 'C' THEN
+    IF :new.STATUS != 'C' THEN
         IF NOT f_trip_is_available(:new.TRIP_ID) THEN
             RAISE_APPLICATION_ERROR(-20007, 'Cannot create reservation, no available places on trip!');
         END IF;
@@ -1145,13 +1145,150 @@ Należy stworzyć nowe wersje tych widoków/procedur/triggerów (np. dodając do
 
 # Zadanie 6a  - rozwiązanie
 
+- p_add_reservation_6a
+
 ```sql
+create or replace PROCEDURE p_add_reservation_6a(
+    p_trip_id trip.trip_id%TYPE,
+    p_person_id person.person_id%TYPE
+)
+AS
+    v_trip_date trip.TRIP_DATE%TYPE;
 
--- wyniki, kod, zrzuty ekranów, komentarz ...
+BEGIN
+--  Validating
+    IF not f_trip_exist(p_trip_id) then
+        raise_application_error(-20000, 'Trip not found!');
+    end if;
 
+    IF not f_person_exist(p_person_id) then
+        raise_application_error(-20001, 'Person not found!');
+    end if;
+
+    SELECT TRIP_DATE INTO v_trip_date FROM TRIP WHERE TRIP_ID = p_trip_id;
+
+    IF v_trip_date <= SYSDATE THEN
+        RAISE_APPLICATION_ERROR(-20002, 'The trip has already taken place!');
+    END IF;
+
+--  Add reservation
+    INSERT INTO RESERVATION (TRIP_ID, PERSON_ID, STATUS)
+    VALUES (p_trip_id, p_person_id, 'N');
+
+    BEGIN
+        p_update_no_available_places(p_trip_id);
+    END;
+
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Reservation added successfully!');
+END;
 ```
 
+Przykładowe wywołanie:
 
+![](img/zad6a-1.png)
+
+![](img/zad6a-2.png)
+
+- p_modify_reservation_status_6a
+
+```sql
+create or replace PROCEDURE p_modify_reservation_status_6a (
+    p_reservation_id reservation.reservation_id%TYPE,
+    p_status reservation.STATUS%TYPE
+)
+AS
+    v_current_status CHAR;
+    v_trip_date DATE;
+    v_trip_id trip.trip_id%TYPE;
+BEGIN
+    IF not f_reservation_exist(p_reservation_id) then
+        raise_application_error(-20000, 'Reservation not found!');
+    end if;
+
+    IF p_status NOT in ('N', 'P', 'C') then
+        RAISE_APPLICATION_ERROR(-20005, 'Status is not correct! Give one of the values "N", "P", "C"');
+    END IF;
+
+    SELECT STATUS INTO v_current_status FROM RESERVATION
+    WHERE RESERVATION_ID = p_reservation_id;
+
+    SELECT TRIP_ID INTO v_trip_id FROM RESERVATION
+    WHERE RESERVATION_ID = p_reservation_id;
+
+    IF p_status = 'C' THEN
+        SELECT TRIP_DATE INTO v_trip_date FROM TRIP
+        WHERE TRIP_ID = v_trip_id;
+
+        IF v_trip_date <= SYSDATE THEN
+            RAISE_APPLICATION_ERROR(-20006, 'Cannot cancel reservation for past trip!');
+        END IF;
+    END IF;
+
+    UPDATE RESERVATION SET STATUS = p_status
+    WHERE RESERVATION_ID = p_reservation_id;
+
+    BEGIN
+        p_update_no_available_places(v_trip_id);
+    END;
+
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Reservation status modified successfully!');
+END;
+```
+
+Przykładowe wywołanie:
+
+![](img/zad6a-3.png)
+
+![](img/zad6a-4.png)
+
+- p_modify_max_no_places_6a
+
+```sql
+create or replace PROCEDURE p_modify_max_no_places_6a (
+    p_trip_id trip.trip_id%TYPE,
+    p_max_no_places trip.max_no_places%TYPE
+)
+AS
+    v_current_max_no_places trip.max_no_places%TYPE;
+    v_no_available trip.max_no_places%TYPE;
+BEGIN
+    IF not f_trip_exist(p_trip_id) then
+        raise_application_error(-20006, 'Trip not found!');
+    end if;
+
+    SELECT MAX_NO_PLACES INTO v_current_max_no_places FROM TRIP
+    WHERE TRIP_ID = p_trip_id;
+
+    if v_current_max_no_places <= 0 then
+        raise_application_error(-20007, 'This number is smaller than 0!');
+    end if;
+
+    SELECT NO_AVAILABLE_PLACES INTO v_no_available FROM VW_TRIP
+    WHERE TRIP_ID = p_trip_id;
+
+    if p_max_no_places < v_current_max_no_places - v_no_available then
+        raise_application_error(-20008, 'This number is smaller than the number of reserved places!');
+    end if;
+
+    UPDATE TRIP SET MAX_NO_PLACES = p_max_no_places
+    WHERE TRIP_ID = p_trip_id;
+
+    BEGIN
+        p_update_no_available_places(p_trip_id);
+    END;
+
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Max number of places modified successfully!');
+END;
+```
+
+Przykładowe wywołanie:
+
+![](img/zad6a-5.png)
+
+![](img/zad6a-6.png)
 
 ---
 # Zadanie 6b -  triggery
