@@ -1099,7 +1099,6 @@ BEGIN
     UPDATE TRIP SET NO_AVAILABLE_PLACES = p_no_available_places
     WHERE TRIP_ID = p_trip_id;
 
-    COMMIT;
     DBMS_OUTPUT.PUT_LINE('Number of available places modified successfully!');
 END;
 ```
@@ -1308,11 +1307,53 @@ Należy stworzyć nowe wersje tych widoków/procedur/triggerów (np. dodając do
 
 # Zadanie 6b  - rozwiązanie
 
+- trg_add_reservation_6b
 
 ```sql
+CREATE OR REPLACE TRIGGER trg_add_reservation_6b
+BEFORE INSERT ON RESERVATION
+FOR EACH ROW
+BEGIN
+    IF not f_trip_is_available(:new.trip_id) then
+        raise_application_error(-20003, 'There are no available places on this trip!');
+    ELSE p_update_no_available_places(:new.trip_id);
+    END IF;
+END;
+```
 
--- wyniki, kod, zrzuty ekranów, komentarz ...
+- p_add_reservation_6b
 
+```sql
+create or replace PROCEDURE p_add_reservation_6b(
+    p_trip_id trip.trip_id%TYPE,
+    p_person_id person.person_id%TYPE
+)
+AS
+    v_trip_date trip.TRIP_DATE%TYPE;
+
+BEGIN
+--  Validating
+    IF not f_trip_exist(p_trip_id) then
+        raise_application_error(-20000, 'Trip not found!');
+    end if;
+
+    IF not f_person_exist(p_person_id) then
+        raise_application_error(-20001, 'Person not found!');
+    end if;
+
+    SELECT TRIP_DATE INTO v_trip_date FROM TRIP WHERE TRIP_ID = p_trip_id;
+
+    IF v_trip_date <= SYSDATE THEN
+        RAISE_APPLICATION_ERROR(-20002, 'The trip has already taken place!');
+    END IF;
+
+--  Add reservation
+    INSERT INTO RESERVATION (TRIP_ID, PERSON_ID, STATUS)
+    VALUES (p_trip_id, p_person_id, 'N');
+
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Reservation added successfully!');
+END;
 ```
 
 
