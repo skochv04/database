@@ -1496,7 +1496,12 @@ END;
 
 Porównaj sposób programowania w systemie Oracle PL/SQL ze znanym ci systemem/językiem MS Sqlserver T-SQL
 
-```sql
+# Zadanie 7 - wnioski
 
+Po kolejnych krokach wykonania danego ćwiczenia można zauważyć, że mimo tego, że języki Oracle PL/SQL i MS Sqlserver T-SQL są bardzo podobne składniowo, one różnią się w szczegółach. Widać zarówno różnicy koncepcyjne, jak i małe różnice składniowe. 
 
-```
+Na przykład, w porównaniu do języku Transact-SQL, język PL/SQL posiada bardziej rozbudowaną technologie do definiowania funkcji zwracających tabele, ponieważ żeby taką funkcję zdefiniować, należy najpierw zdefiniować typ obiektowy, a następnie na podstawie tego typu stworzyć typ tablicowy, z którego będzie korzystać ta funkcja. Oprócz tego korzystamy z konstrukcji "bulk collect", która gromadzi te dane do tablicy razem z "insert into". Natomiast, wewnątrz triggerów mamy konstukcje ":old, :new" zamiast tabel "inserted", "deleted", jak to było w Transact-SQL.
+
+Po wykonaniu zadań z procedurami można wywnioskować, że z tego powodu, że nie mamy transakcji zagnieżdżonych, commit w procedurze może nie mieć sensu, jeśli wywołujemy pewną sekwencję procedur, albo jedną procedurę wywołujemy wewnątrz innej. Natomiast można użyć go w najbardziej zewnętrznym bloku.
+
+Podsumowując, język PL/SQL czasami jest łatwiejszy w interpretacji, implementacji niż język Transact-SQL, ale w niektórych sytuacjach jest on dość mało wygodny i wymaga więcej czasu na dość proste rzeczy (jak np funkcje, zwracające tabele).
