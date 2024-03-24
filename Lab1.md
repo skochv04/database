@@ -236,27 +236,27 @@ begin
 end;
 
 ```
-Spróbujmy preprowadzić eksperyment. Nie mamy rekordów w tabeli "Log":
+Spróbujmy przeprowadzić eksperyment. Nie mamy rekordów w tabeli "Log":
 
 ![](img/zad0-1.png)
 
-Następnie wstawimy bezbłędne dane:
+Następnie wstawiamy bezbłędne dane:
 
 ![](img/zad0-2.png)
 
-Wstawienie się udało, przekonajmy się w tym:
+Wstawienie się udało:
 
 ![](img/zad0-3.png)
 
-Następnie usuniemy ten rekord:
+Sprawdzamy usunięcie rekordu:
 
 ![](img/zad0-4.png)
 
-Usunięcie się udało, przekonajmy się w tym:
+Usunięcie się udało:
 
 ![](img/zad0-5.png)
 
-A teraz spróbujmy dodać kolejno prawidłowe, a następnie nieprawidłowe dane (resrevation_id nie może być NULLem):
+A teraz spróbujmy dodać kolejno prawidłowe, a następnie nieprawidłowe dane (resrevation_id nie może być NULL):
 
 ![](img/zad0-6.png)
 
@@ -268,9 +268,9 @@ W wyniku tego polecenia żaden wiersz nie został dodany:
 
 ![](img/zad0-8.png)
 
-Możemy zauważyć, że w języku PL/SQL jeśli mamy na pryzkład operacje dodawania 2 wierszy w jednym bloku "BEGIN-END", to w przypadku, gdy 2-ie polecenie kończy się błędem i nie obsługujemy ten błąd, żaden wiersz nie zostanie dodany, na zewnątrz zostanie wyrzucony wyjątek. 
+Możemy zauważyć, że w języku PL/SQL jeśli mamy na przykład operacje dodawania 2 wierszy w jednym bloku "BEGIN-END", to w przypadku, gdy 2-ie polecenie kończy się błędem i nie obsługujemy tego błędu, żaden wiersz nie zostanie dodany, na zewnątrz zostanie wyrzucony wyjątek. 
 
-Natomiast jeżelibyśmy wykonali to samo w języku Transact-SQL wewnątrz "BEGIN TRAN-COMMIT TRAN", pierwszy wiersz zostałby dodany do bazy, bo mimo że 2-ie polecenie kończy się błędem, to nie jest błąd krytyczny. Aby osiągnąć taki efekt, żeby cała sekwencja została wycofana w przypadku takiego błędu w języku Transact-SQL, możemy skorzystać z "TRY-CATCH", i w bloku "CATCH" wykonać "rollback tran".
+Natomiast jeżelibyśmy wykonali to samo w języku Transact-SQL wewnątrz "BEGIN TRAN-COMMIT TRAN", pierwszy wiersz zostałby dodany do bazy, bo mimo że 2-ie polecenie kończy się błędem, to nie jest to błąd krytyczny. Aby osiągnąć taki efekt, żeby cała sekwencja została wycofana w przypadku takiego błędu w języku Transact-SQL, możemy skorzystać z "TRY-CATCH", i w bloku "CATCH" wykonać "rollback tran".
 
 W przypadku, gdy obsłużymy wyjątek spowodowany 2-im poleceniem w języku PL/SQL i nie wyrzucimy "raise", to będziemy mieli 2 sytuacje: jeśli jesteśmy w trybie Auto-Commit, to ten poprawny wiersz zostanie dopisany do bazy, a jeśli jesteśmy w trybie Manual, to mamy jeszcze możliwość wykonania polecenia "rollback".
 
@@ -368,9 +368,9 @@ Proponowany zestaw funkcji można rozbudować wedle uznania/potrzeb
 
 # Zadanie 2  - rozwiązanie
 
-Mimo tego, że funkcje mogą zwracać tabele, jak widoki albo polecenie "select", kontrola parametrów w przypadku funkcji ma sens. W taki sposób możemy na przykład odróżnić dwie sytuacje: gdy dane o takim parametrze nie istnieją i gdy dane o takim parametrze istnieją, ale są nie zgodne z warunkiem funkcji.
+Mimo tego, że funkcje mogą zwracać tabele, jak widoki albo polecenie "select", kontrola parametrów w przypadku funkcji ma sens. W ten sposób możemy na przykład odróżnić dwie sytuacje: gdy dane o takim parametrze nie istnieją i gdy dane o takim parametrze istnieją, ale są nie zgodne z warunkiem funkcji.
 
-Wadą takiego rozwiązania może być dość duży, czasem nieczytelny kod, a więc są kilka sposobów na uproszczenie tej funkcji, na przykład przez zdefiniowanie funkcji pomocniczej.
+Wadą takiego rozwiązania może być dość duży, czasem nieczytelny kod, a więc jest kilka sposobów na uproszczenie tej funkcji, na przykład przez zdefiniowanie funkcji pomocniczej.
 
 - f_trip_exist (pomocnicza)
 
@@ -1042,7 +1042,7 @@ Dwa powyższe triggery są proste w interpretacji i nie wymagają pokazywania pr
 
 Triger, modyfikujący status rezerwacji korzysta z "PRAGMA AUTONOMOUS_TRANSACTION", dzięki czemu tworzy się nowa transakcja, niezależna od tej zewnętrznej i mamy możliwość sprawdzenia wyników funkcji, która korzysta z tabeli, która jest w trakcie modyfikowania. 
 
-Oprócz tego, skrócił się kod, ponieważ w tym triggerze mamy dostęp do nowych wstawianych danych, i jesteśmy w stanie stąd dowiedzieć się "trip_id", nie potrzebujemy komplikować kod, jak w przypadku poprzednich zadań.
+Oprócz tego, skrócił się kod, ponieważ w tym triggerze mamy dostęp do nowo wstawianych danych, i jesteśmy w stanie dowiedzieć się jakie jest "trip_id", nie potrzebujemy komplikować kodu, jak w przypadku poprzednich zadań.
 
 ---
 # Zadanie 6
@@ -1498,9 +1498,9 @@ Porównaj sposób programowania w systemie Oracle PL/SQL ze znanym ci systemem/j
 
 # Zadanie 7 - wnioski
 
-Po kolejnych krokach wykonania danego ćwiczenia można zauważyć, że mimo tego, że języki Oracle PL/SQL i MS Sqlserver T-SQL są bardzo podobne składniowo, one różnią się w szczegółach. Widać zarówno różnicy koncepcyjne, jak i małe różnice składniowe. 
+Po kolejnych krokach wykonania danego ćwiczenia można zauważyć, że mimo tego, że języki Oracle PL/SQL i MS Sqlserver T-SQL są bardzo podobne składniowo, to różnią się w wielu miejscach. Widać zarówno różnice koncepcyjne, jak i małe różnice składniowe. 
 
-Na przykład, w porównaniu do języku Transact-SQL, język PL/SQL posiada bardziej rozbudowaną technologie do definiowania funkcji zwracających tabele, ponieważ żeby taką funkcję zdefiniować, należy najpierw zdefiniować typ obiektowy, a następnie na podstawie tego typu stworzyć typ tablicowy, z którego będzie korzystać ta funkcja. Oprócz tego korzystamy z konstrukcji "bulk collect", która gromadzi te dane do tablicy razem z "insert into". Natomiast, wewnątrz triggerów mamy konstukcje ":old, :new" zamiast tabel "inserted", "deleted", jak to było w Transact-SQL.
+Na przykład, w porównaniu do języka Transact-SQL, język PL/SQL posiada bardziej rozbudowaną technologie do definiowania funkcji zwracających tabele, ponieważ żeby taką funkcję zdefiniować, należy najpierw zdefiniować typ obiektowy, a następnie na podstawie tego typu stworzyć typ tablicowy, z którego będzie korzystać ta funkcja. Oprócz tego korzystamy z konstrukcji "bulk collect", która gromadzi te dane do tablicy razem z "insert into". Natomiast, wewnątrz triggerów mamy konstukcje ":old, :new" zamiast tabel "inserted", "deleted", jak to było w Transact-SQL.
 
 Po wykonaniu zadań z procedurami można wywnioskować, że z tego powodu, że nie mamy transakcji zagnieżdżonych, commit w procedurze może nie mieć sensu, jeśli wywołujemy pewną sekwencję procedur, albo jedną procedurę wywołujemy wewnątrz innej. Natomiast można użyć go w najbardziej zewnętrznym bloku.
 
