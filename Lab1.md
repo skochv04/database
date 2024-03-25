@@ -661,6 +661,7 @@ Error: Brak miejsc na wycieczce:
 ![](img/zad3-7.png)
 
 Error: Nie można przypisać więcej niż 1 rezerwacji na jedną osobę:
+
 ![](img/zad3-8.png)
 
 ![](img/zad3-9.png)
@@ -1342,17 +1343,9 @@ CREATE OR REPLACE TRIGGER trg_add_reservation_6b
 AFTER INSERT ON RESERVATION
 FOR EACH ROW
 BEGIN
-    IF :new.status != :old.status THEN
-        IF :new.status = 'C' THEN
-            UPDATE TRIP
-                SET NO_AVAILABLE_PLACES = NO_AVAILABLE_PLACES + 1
-                WHERE TRIP_ID = :new.trip_id;
-        ELSIF :new.status = 'N' THEN
-            UPDATE TRIP
-                SET NO_AVAILABLE_PLACES = NO_AVAILABLE_PLACES - 1
-                WHERE TRIP_ID = :new.trip_id;
-        end if;
-    END IF;
+    UPDATE TRIP
+        SET NO_AVAILABLE_PLACES = NO_AVAILABLE_PLACES - 1
+        WHERE TRIP_ID = :new.trip_id;
 END;
 ```
 - p_add_reservation_6b
@@ -1417,7 +1410,7 @@ BEGIN
             UPDATE TRIP
                 SET NO_AVAILABLE_PLACES = NO_AVAILABLE_PLACES + 1
                 WHERE TRIP_ID = :new.trip_id;
-        ELSE
+        ELSIF :old.status = 'C' THEN
             UPDATE TRIP
                 SET NO_AVAILABLE_PLACES = NO_AVAILABLE_PLACES - 1
                 WHERE TRIP_ID = :new.trip_id;
