@@ -605,6 +605,7 @@ create or replace PROCEDURE p_add_reservation(
 )
 AS
     v_trip_date trip.TRIP_DATE%TYPE;
+    v_reservation_count NUMBER;
     v_reservation_id RESERVATION.RESERVATION_ID%TYPE;
 
 BEGIN
@@ -616,7 +617,7 @@ BEGIN
     IF not f_person_exist(p_person_id) then
         raise_application_error(-20001, 'Person not found!');
     end if;
-    
+
     SELECT TRIP_DATE INTO v_trip_date FROM TRIP WHERE TRIP_ID = p_trip_id;
 
     IF v_trip_date <= SYSDATE THEN
@@ -626,6 +627,14 @@ BEGIN
     IF not f_trip_is_available(p_trip_id) then
         raise_application_error(-20003, 'There are no available places on this trip!');
     end if;
+
+	SELECT COUNT(*) INTO v_reservation_count
+    FROM RESERVATION
+    WHERE TRIP_ID = p_trip_id AND PERSON_ID = p_person_id;
+
+    IF v_reservation_count > 0 THEN
+        RAISE_APPLICATION_ERROR(-20005, 'This person already has a reservation for this trip!');
+    END IF;
 
 --  Add reservation
     INSERT INTO RESERVATION (TRIP_ID, PERSON_ID, STATUS)
@@ -645,9 +654,19 @@ END;
 ```
 Przykładowe wywołania:
 
+Error: Wycieczka odbyła się:
 ![](img/zad3-6.png)
 
+Error: Brak miejsc na wycieczce:
 ![](img/zad3-7.png)
+
+Error: Nie można przypisać więcej niż 1 rezerwacji na jedną osobę:
+![](img/zad3-8.png)
+
+![](img/zad3-9.png)
+
+![](img/zad3-10.png)
+
 
 - p_modify_reservation_status
 
@@ -1154,7 +1173,7 @@ create or replace PROCEDURE p_add_reservation_6a(
 )
 AS
     v_trip_date trip.TRIP_DATE%TYPE;
-
+    v_reservation_count NUMBER;
 BEGIN
 --  Validating
     IF not f_trip_exist(p_trip_id) then
@@ -1169,6 +1188,14 @@ BEGIN
 
     IF v_trip_date <= SYSDATE THEN
         RAISE_APPLICATION_ERROR(-20002, 'The trip has already taken place!');
+    END IF;
+    
+    SELECT COUNT(*) INTO v_reservation_count
+    FROM RESERVATION
+    WHERE TRIP_ID = p_trip_id AND PERSON_ID = p_person_id;
+
+    IF v_reservation_count > 0 THEN
+        RAISE_APPLICATION_ERROR(-20005, 'This person already has a reservation for this trip!');
     END IF;
 
 --  Add reservation
@@ -1320,7 +1347,7 @@ BEGIN
             UPDATE TRIP
                 SET NO_AVAILABLE_PLACES = NO_AVAILABLE_PLACES + 1
                 WHERE TRIP_ID = :new.trip_id;
-        ELSE
+        ELSIF :new.status = 'N' THEN
             UPDATE TRIP
                 SET NO_AVAILABLE_PLACES = NO_AVAILABLE_PLACES - 1
                 WHERE TRIP_ID = :new.trip_id;
@@ -1328,7 +1355,6 @@ BEGIN
     END IF;
 END;
 ```
-
 - p_add_reservation_6b
 
 ```sql
@@ -1338,6 +1364,7 @@ create or replace PROCEDURE p_add_reservation_6b(
 )
 AS
     v_trip_date trip.TRIP_DATE%TYPE;
+    v_reservation_count NUMBER;
 
 BEGIN
 --  Validating
@@ -1354,7 +1381,15 @@ BEGIN
     IF v_trip_date <= SYSDATE THEN
         RAISE_APPLICATION_ERROR(-20002, 'The trip has already taken place!');
     END IF;
+    
+    SELECT COUNT(*) INTO v_reservation_count
+    FROM RESERVATION
+    WHERE TRIP_ID = p_trip_id AND PERSON_ID = p_person_id;
 
+    IF v_reservation_count > 0 THEN
+        RAISE_APPLICATION_ERROR(-20005, 'This person already has a reservation for this trip!');
+    END IF;
+    
 --  Add reservation
     INSERT INTO RESERVATION (TRIP_ID, PERSON_ID, STATUS)
     VALUES (p_trip_id, p_person_id, 'N');
