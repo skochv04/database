@@ -6,7 +6,7 @@
 
 ---
 
-**Imiona i nazwiska autorów:**
+**Imiona i nazwiska autorów: Stas Kochevenko & Wiktor Dybalski**
 
 --- 
 
@@ -30,10 +30,7 @@ Stwórz bazę danych/kolekcję/dokument
 
 ## Zadanie 1  - rozwiązanie
 
-> Wyniki: 
-> 
-> przykłady, kod, zrzuty ekranów, komentarz ...
-
+![](img/1.png)
 ```js
 --  ...
 ```
