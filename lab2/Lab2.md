@@ -30,10 +30,25 @@ Stwórz bazę danych/kolekcję/dokument
 
 ## Zadanie 1  - rozwiązanie
 
+- Połączenie z bazą danych za pomocą konsoli mongosh
+
 ![](img/1.png)
+
+- Połączenie z bazą danych w narzędziu DataGrip
+
+![](img/2.png)
+
+- Stworzenie przykładowego dokumentu & wyświetlanie zawartości
+
 ```js
---  ...
+
 ```
+
+![](img/3.png)
+
+![](img/4.png)
+
+
 
 ---
 
