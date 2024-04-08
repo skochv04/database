@@ -111,11 +111,54 @@ Przetestuj działanie operacji
 
 ---
 
+Używając komendy mongorestore importujemy dane do zdalnej bazy danych MongoDB Atlas
 ![](samples%20do%20bazy.png)
 
 Przykładowe dane z kolekcji sample_weatherdata.data
 ![](samples%20do%20bazy3.png)
 ![](samples%20do%20bazy2.png)
+Przkładowe dane z kolekcji sample_training.companies
+
+![](11.png)
+
+Analizując kolekcję sample_training.companies możemy zauważyć różnego rodzaju dane
+![](22.png)
+
+id kolekcji:
+
+![](33.png)
+
+Category_code typu String
+
+![](4.png)
+
+Created_at typu Date
+
+![](5.png)
+
+Competitions typu listy różnego rodzaju elementów/struktur danych
+![](6.png)
+
+Po analizie całej konkretnej kolekcji możemy powiedzieć, że przechowywane są w niej rożnego rodzaju
+dane co pozwala dokłdnie opisać co przechowuje dany obiekt   
+
+Analizując sample_geospatio.shipwrecks także zauważamy, że przedstawione dane przechowywane są w sposób przejrzysty,
+czytelny, a także bardzo szczegółowy.
+
+![](7.png)
+
+![](8.png)
+
+Korzystając z mongoimport importujemy yelp.busness.json
+
+![](9.png)
+
+![](10.png)
+
+yelp.business.json:
+
+![](12.png)
+
 
 
 
