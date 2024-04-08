@@ -159,7 +159,13 @@ yelp.business.json:
 
 ![](12.png)
 
+Użycie polecenia mongodump
 
+![](mongodump.png)
+
+
+Użycie polecenia mongoexport
+![](mongoexport.png)
 
 
 # Zadanie 3 - operacje CRUD, operacje wyszukiwania danych
