@@ -184,10 +184,6 @@ Stwórz nową bazę danych
 
 ## Zadanie 3  - rozwiązanie
 
-> Wyniki: 
-> 
-> przykłady, kod, zrzuty ekranów, komentarz ...
-
 - Uworzenie bazy danych
 
 ```js
@@ -436,6 +432,186 @@ db.orders.insertMany([
 ```
 
 ![](img/36.png)
+
+- Testowanie update
+
+Na przykładzie tabeli products przetestowaliśmy prosty update danych
+
+```js
+db.products.updateOne(
+  { product_name: 'Yougurt Strawberry' },
+  {
+    $set: { qty: 76 },
+  }
+);
+```
+
+![](img/37.png)
+
+Zauważyliśmy powielanie danych w tabeli products, więc spróbowaliśmy bardziej złożony update do zmiany danych o dostawcach.
+
+Zmienimy nazwę pola:
+
+```js
+db.products.updateMany(
+   {},
+   { $rename: { 'manufacturer': 'supplier_id' } }
+)
+```
+
+Update zmienia zagnieżdzone powielane dane na id z kolekcji Suppliers:
+
+```js
+db.products.updateOne(
+  { product_name: 'Yougurt Strawberry' },
+  {
+    $set: { supplier_id: "66153f52ba66ac47ca309b17" },
+  }
+);
+
+db.products.updateOne(
+  { product_name: 'Cheese Gauda Poland' },
+  {
+    $set: { supplier_id: "66153f52ba66ac47ca309b17" },
+  }
+);
+
+db.products.updateOne(
+  { product_name: 'Ice cream Forest Day' },
+  {
+    $set: { supplier_id: "66153f52ba66ac47ca309b17" },
+  }
+);
+
+db.products.updateOne(
+  { product_name: 'Cocktail strawberry summer' },
+  {
+    $set: { supplier_id: "66153f52ba66ac47ca309b17" },
+  }
+);
+
+db.products.updateOne(
+  { product_name: 'Ice cream 100%' },
+  {
+    $set: { supplier_id: "66153f52ba66ac47ca309b18" },
+  }
+);
+
+db.products.updateOne(
+  { product_name: 'Ice cream Banana' },
+  {
+    $set: { supplier_id: "66153f52ba66ac47ca309b18" },
+  }
+);
+
+db.products.updateOne(
+  { product_name: 'Ice cream natural pure x4' },
+  {
+    $set: { supplier_id: "66153f52ba66ac47ca309b18" },
+  }
+);
+
+db.products.updateOne(
+  { product_name: 'Сocktaile chokolate biscuit' },
+  {
+    $set: { supplier_id: "66153f52ba66ac47ca309b19" },
+  }
+);
+
+db.products.updateOne(
+  { product_name: 'Cheese Gauda Munich' },
+  {
+    $set: { supplier_id: "66153f52ba66ac47ca309b19" },
+  }
+);
+```
+
+![](img/38.png)
+
+- Testowanie delete
+
+Spróbujmy usunąć ostatni dokument z kolekcji Suppliers, nie jest on używany
+
+```js
+db.suppliers.deleteOne(
+    {   name: "Mlekoraj" }
+)
+```
+
+![](img/39.png)
+
+![](img/40.png)
+
+- Testowanie insert
+
+Spróbujmy dodać nowy dokument do kolekcji Suppliers
+
+```js
+db.suppliers.insertOne({
+       name: "MicroMilk",
+       address: {country: "Poland", city: "Wroclaw", address: "Berska street, 34"},
+       contact: ["micromilk@gmail.com", "+48 187 12 90"],
+       additional_info: "10.04-12.04.2024 - discount 15% on whole products"
+   })
+```
+
+Jak widać, MongoDB pozwala na dodawanie nowych pól dla pojedynczych dokumentów, i to nie prowadzi do zakłuceń lub błędów
+
+![](img/41.png)
+
+- Testowanie find (wyszukiwanie danych)
+
+Wszystkie dostawcy z Polski:
+
+```js
+db.suppliers.find({"address.country": "Poland"})
+```
+
+![](img/42.png)
+
+Wszystkie produkty z kategorii "icecream" albo "yougurt":
+
+```js
+db.products.find({category: {$in: ["yougurt", "icecream"]}})
+```
+
+![](img/43.png)
+
+Dodamy drugi warunek na cenę większą od 3:
+
+```js
+db.products.find({category: {$in: ["yougurt", "icecream"]}, price: {$gt: 3}})
+```
+
+![](img/44.png)
+
+Spróbujmy wyświetlić produkty potrzebujące uwagi menadżerów: albo skasowane, albo takie, których zostało mniej niż 10.
+
+```js
+db.products.find({$or: [
+   {qty: {$lt: 10}}, {discounted: "true"}
+]})
+```
+
+![](img/45.png)
+
+Możemy poszukać zamówienie, w którym jeden z produktów miał zniżkę 75%. Wyświetlimy tylko id zamówienia i datę.
+
+```js
+db.orders.find({$or: [{"order_details.discount": {$eq: 0.75}}]},
+               {_id: 1, orderdate: 1})
+```
+
+![](img/46.png)
+
+Albo można też tak:
+
+```js
+db.orders.find({$or: [{"order_details.discount": {$eq: 0.75}}]},
+               {customer: 0, order_details: 0})
+```
+
+![](img/46.png)
 
 ---
 
