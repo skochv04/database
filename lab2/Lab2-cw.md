@@ -38,6 +38,8 @@ Stwórz bazę danych/kolekcję/dokument
 
 ![](img/2.png)
 
+<div style="page-break-after: always;"></div>
+
 - Stworzenie przykładowego dokumentu & wyświetlanie zawartości
 
 ```js
@@ -117,13 +119,23 @@ Używając komendy mongorestore importujemy dane do zdalnej bazy danych MongoDB 
 ![](img/samples%20do%20bazy.png)
 
 Przykładowe dane z kolekcji sample_weatherdata.data
-![](img/samples%20do%20bazy3.png)
+
+```js
+use sample_weatherdata
+db.data.find()
+```
+
 ![](img/samples%20do%20bazy2.png)
-Przkładowe dane z kolekcji sample_training.companies
 
-![](img/11.png)
+Przykładowe dane z kolekcji sample_training.companies
 
-Analizując kolekcję sample_training.companies możemy zauważyć różnego rodzaju dane
+```js
+use sample_training
+db.companies.find()
+```
+
+Analizując kolekcję sample_training.companies możemy zauważyć różnego rodzaju dane:
+
 ![](img/22.png)
 
 id kolekcji:
@@ -142,12 +154,15 @@ Competitions typu listy różnego rodzaju elementów/struktur danych
 ![](img/6.png)
 
 Po analizie całej konkretnej kolekcji możemy powiedzieć, że przechowywane są w niej rożnego rodzaju
-dane co pozwala dokłdnie opisać co przechowuje dany obiekt   
+dane co pozwala dokładnie opisać co przechowuje dany obiekt.  
 
 Analizując sample_geospatio.shipwrecks także zauważamy, że przedstawione dane przechowywane są w sposób przejrzysty,
 czytelny, a także bardzo szczegółowy.
 
-![](img/7.png)
+```js
+use sample_training
+db.companies.find()
+```
 
 ![](img/8.png)
 
