@@ -41,14 +41,18 @@ Stwórz bazę danych/kolekcję/dokument
 - Stworzenie przykładowego dokumentu & wyświetlanie zawartości
 
 ```js
+db.students.insertMany([
+    {age: 25,
+    grade: "A",
+    name: "John Doe"},
 
+    {age: 50,
+    grade: "B",
+    name: "Barak Obama"}
+])
 ```
 
 ![](img/3.png)
-
-![](img/4.png)
-
-
 
 ---
 
@@ -106,8 +110,6 @@ Przetestuj działanie operacji
 	- [https://www.mongodb.com/docs/database-tools/mongodump/](https://www.mongodb.com/docs/database-tools/mongodump/)
 - `mongoexport`
 	- [https://www.mongodb.com/docs/database-tools/mongoexport/](https://www.mongodb.com/docs/database-tools/mongoexport/)
-
----
 
 ---
 
