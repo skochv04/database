@@ -512,6 +512,8 @@ db.orders.insertMany([
 
 ![](img/36.png)
 
+<div style="page-break-after: always;"></div>
+
 - Testowanie update
 
 Na przykładzie tabeli products przetestowaliśmy prosty update danych
@@ -682,6 +684,8 @@ db.orders.find({$or: [{"order_details.discount": {$eq: 0.75}}]},
 ```
 
 ![](img/46.png)
+
+<div style="page-break-after: always;"></div>
 
 Albo można też tak:
 
