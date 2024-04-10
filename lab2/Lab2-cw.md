@@ -1,7 +1,7 @@
 
 # Dokumentowe bazy danych – MongoDB
 
-ćwiczenie 1
+ćwiczenie 2
 
 
 ---
@@ -115,10 +115,13 @@ Przetestuj działanie operacji
 
 ---
 
-Używając komendy mongorestore importujemy dane do zdalnej bazy danych MongoDB Atlas
+MongoDB Atlas Sample Dataset
+
+- Używając komendy mongorestore importujemy dane do zdalnej bazy danych MongoDB Atlas:
+
 ![](img/samples%20do%20bazy.png)
 
-Przykładowe dane z kolekcji sample_weatherdata.data
+- Przykładowe dane z kolekcji sample_weatherdata.data:
 
 ```js
 use sample_weatherdata
@@ -127,55 +130,106 @@ db.data.find()
 
 ![](img/samples%20do%20bazy2.png)
 
-Przykładowe dane z kolekcji sample_training.companies
+- Przykładowe dane z kolekcji sample_training.companies
 
 ```js
 use sample_training
 db.companies.find()
 ```
 
-Analizując kolekcję sample_training.companies możemy zauważyć różnego rodzaju dane:
+- Analizując kolekcję sample_training.companies możemy zauważyć różnego rodzaju dane:
 
 ![](img/22.png)
 
-id kolekcji:
+- id kolekcji:
 
 ![](img/33.png)
 
-Category_code typu String
+<div style="page-break-after: always;"></div>
+
+- category_code typu String:
 
 ![](img/4.png)
 
-Created_at typu Date
+- created_at typu Date
 
 ![](img/5.png)
 
-Competitions typu listy różnego rodzaju elementów/struktur danych
+<div style="page-break-after: always;"></div>
+
+- Competitions składają się z tablicy dokumentów, przy czym widać użycie dokumentów zagnieżdżonych, składających się z danych rożnego typu. Niektóre listy są puste, można ich za potrzeby rozszerzyć
+
 ![](img/6.png)
 
-Po analizie całej konkretnej kolekcji możemy powiedzieć, że przechowywane są w niej rożnego rodzaju
+- Tag_list - lista tagów, zawsze jest możliwość zostawić pustą, albo doklejać coś do danego stringu
+
+![](img/47.png)
+
+- Na przykładzie deapooled_day widzimy analogię do SQL, czyli albo istnieje pewna informacja, albo mamy wartość "null"
+
+![](img/48.png)
+
+- Po analizie całej konkretnej kolekcji możemy powiedzieć, że przechowywane są w niej rożnego rodzaju
 dane co pozwala dokładnie opisać co przechowuje dany obiekt.  
 
-Analizując sample_geospatio.shipwrecks także zauważamy, że przedstawione dane przechowywane są w sposób przejrzysty,
+- Analizując sample_geospatio.shipwrecks także zauważamy, że przedstawione dane przechowywane są w sposób przejrzysty,
 czytelny, a także bardzo szczegółowy.
 
 ```js
-use sample_training
-db.companies.find()
+use sample_geospatial
+db.shipwrecks.find()
+```
+![](img/8.png)
+
+- Na przykładzie pola "quasou" widzimy, że dla niektórych dokumentów jest ono puste. W taki sposób zostaje miejsce do uzupełnienia informacji w przyszłości.
+
+![](img/49.png)
+
+- Niektóre pola są puste dla wszystkich dokumentów. 
+
+![](img/50.png)
+
+- Można sprawdzić, czy oznacza to wartość "Null":
+
+```js
+use sample_geospatial
+db.shipwrecks.find({ "recrd": null })
+```
+
+![](img/51.png)
+
+- Wynikiem jest zbiór pusty. Spróbujmy sprawdzić, czy nie jest to pusty string:
+
+```js
+use sample_geospatial
+db.shipwrecks.find({ "recrd": "" })
 ```
 
 ![](img/8.png)
 
-Korzystając z mongoimport importujemy yelp.busness.json
+Yelp
+
+- Korzystając z mongoimport importujemy yelp.busness.json
 
 ![](img/9.png)
 
-![](img/10.png)
-
-yelp.business.json:
+- yelp.business.json:
 
 ![](img/12.png)
 
+- Analizując dane, widzimy, że w kolekcji business mamy pole neighborhoods - pusta lista sąsiedzi do uzupełnienia za potrzeby.
+
+![](img/52.png)
+
+- Dla "hours" widzimy zagnieżdżone dokumenty, co więcej, w środku tych obiektów są jeszcze inne zagnieżdżone.
+
+![](img/53.png)
+
+- Dla "atributes" widzimy lekko różniącą się strukture dla kolejnych dokumentów: niektóre posiadają tylko określone komponenty, niektóre - wszystkie komponenty, a niektóre w ogóle mają puste atrybuty, co nie zabrania oczywiście uzupełnić je w przyszłości.
+
+![](img/54.png)
+
+Ogólnie w yelp.business mamy dość rozbudowaną strukturę, w której pola dokumentów mają różne typy: proste (logiczne, liczbowe, tekstowe), tablicowe, zagnieżdżone dokumenty.
 Użycie polecenia mongodump
 
 ![](img/mongodump.png)
@@ -184,6 +238,7 @@ Użycie polecenia mongodump
 Użycie polecenia mongoexport
 ![](img/mongoexport.png)
 
+---
 
 # Zadanie 3 - operacje CRUD, operacje wyszukiwania danych
 
