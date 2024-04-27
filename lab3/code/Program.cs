@@ -182,6 +182,7 @@ class Program
             {
                 case "Tak":
                     supplier.Products.Add(product);
+                    product.supplier = supplier;
                     Console.Write($"\nDla productu: {product.ProductName} zmieniono dostawcę na: {supplier.CompanyName}.\n");
                     productContext.SaveChanges();
                     correctAnswer = true;

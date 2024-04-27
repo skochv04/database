@@ -78,6 +78,7 @@ foreach (var pName in query)
 # Zadanie 2 - wprowadzenie pojęcia Dostawcy
 
 Została dodana klasa Supplier oraz zaktualizowana odpowiednio klasa Product, żeby mieć połączenie z klasą Supplier.
+
 Schemat zmienionej bazy danych, wygenerowany przez DataGrip:
 
 ![](img/2.png)
@@ -109,6 +110,8 @@ Kod:
 ```c#
 using System.Runtime.Intrinsics.X86;
 
+using System.Runtime.Intrinsics.X86;
+
 public class Product
 {
     public int ProductID { get; set; }
@@ -117,7 +120,12 @@ public class Product
     public Supplier? supplier { get; set; } = null;
     public override string ToString()
     {
-        return $"{ProductName}: {UnitsInStock} szt";
+        string supName = "undefined";
+        if (supplier != null)
+        {
+            supName = supplier.CompanyName;
+        }
+        return $"{ProductName}: {UnitsInStock} szt. Dostawca: {supName}";
     }
 }
 ```
@@ -300,6 +308,7 @@ class Program
 - W klasie "Supplier" dodano kolekcję produktów, dostarczanych przez danego dostawcę.
 - W kodzie głównego programu został dodany fragment kodu odpowiedzialny za dodanie nowych produktów. W poruwnywniu do zadania 1, jedyną zmianą było ustawienie produktu do dostawcy, zamiast ustawienia dostawcy do produktu. Niżej będzie podany fragment kodu, który uległ zmianie.
 - Klasa ProdContext pozostała bez zmian.
+
 Schemat zmienionej bazy danych, wygenerowany przez DataGrip:
 
 ![](img/2.png)
@@ -398,6 +407,89 @@ static void Main()
 
             supplier.Products.Add(product);
 
+        ...
+    }
+```
+
+--- 
+
+# Zadanie 4 - dwustronna relacja Supplier <----> Product
+
+- Do klasy "Product" został dodany atrybut, określający Dostawcę danego produktu (tak jak w zad. 2).
+- Klasa "Supplier" pozostała bez zmian względem implementacji poprzedniego zadania.
+- W kodzie jedyną zmianą było dodanie ustawienia dostawcy do produktu. Niżej będzie podany fragment kodu, który uległ zmianie.
+- Klasa ProdContext pozostała bez zmian.
+
+Schemat zmienionej bazy danych, wygenerowany przez DataGrip:
+
+![](img/2.png)
+
+Jak widać, pomimo utworzenia dwukierunkowej relacji, schemat bazy danych nadal się nie zmienił. Z tego wynika, że Entity Framework dokonuje optymalizacji, pozostawiając tylko niezbędną relację w bazie danych, natomiast pozwala na utworzenie dwukierunkowej relacji (można również stworzyć ją w przeciwnym kierunku), aby mieć możliwość łatwiejszego manipulowania powiązanymi między sobą obiektami. W taki sposób Entity Framework unika powielania danych w tabeli Suppliers.
+
+Testowanie dodania nowych produktów i ustawienia ich dostawcy na nowo stworzonego. Tabela Products przed wywołaniem metody dodającej:
+
+![](img/10.png)
+
+Wynik działania programu w postaci konsolowych komunikatów:
+
+![](img/11.png)
+
+Sprawdżmy trwałość zmian za pomocą DataGrip. Tabela Product po dodaniu produktów:
+
+![](img/12.png)
+
+Sprawdżmy trwałość zmian za pomocą DataGrip. Tabela Product po wprowadzeniu zmiany dostawcy:
+
+![](img/13.png)
+
+Kod:
+
+- Product.cs
+
+```c#
+using System.Runtime.Intrinsics.X86;
+
+using System.Runtime.Intrinsics.X86;
+
+public class Product
+{
+    public int ProductID { get; set; }
+    public String? ProductName { get; set; }
+    public int UnitsInStock { get; set; }
+    public Supplier? supplier { get; set; } = null;
+    public override string ToString()
+    {
+        string supName = "undefined";
+        if (supplier != null)
+        {
+            supName = supplier.CompanyName;
+        }
+        return $"{ProductName}: {UnitsInStock} szt. Dostawca: {supName}";
+    }
+}
+```
+
+- Program.cs (fragment starego kodu)
+
+```c#
+static void Main()
+    {   
+        ...
+
+            supplier.Products.Add(product);
+
+        ...
+    }
+```
+
+- Program.cs (fragment nowego kodu)
+
+```c#
+static void Main()
+    {
+        ...
+            supplier.Products.Add(product);
+            product.supplier = supplier;
         ...
     }
 ```
