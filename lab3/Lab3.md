@@ -205,7 +205,7 @@ class Program
         string street = Console.ReadLine();
 
         Supplier supplier = new Supplier { CompanyName = companyName, City = city, Street = street };
-        Console.Write($"Został utworzony dostawca: {supplier};");
+        Console.Write($"Został utworzony dostawca: {supplier}.\n");
 
         return supplier;
     }
@@ -236,8 +236,27 @@ class Program
     {
         ProdContext productContext = new ProdContext();
 
-        Supplier supplier = createNewSupplier();
-        productContext.Suppliers.Add(supplier);
+        Supplier supplier = null;
+
+        Console.WriteLine("Dodać nowego dostawcę? (Tak/Nie)");
+        string choice = Console.ReadLine();
+        bool correctAnswer = false;
+        do
+        {
+            switch (choice)
+            {
+                case "Tak":
+                    supplier = createNewSupplier();
+                    productContext.Suppliers.Add(supplier);
+                    correctAnswer = true;
+                    break;
+                case "Nie":
+                    showAllSuppliers(productContext);
+                    supplier = findSupplier(productContext);
+                    correctAnswer = true;
+                    break;
+            }
+        } while (!correctAnswer);
 
         productContext.SaveChanges();
 
@@ -247,15 +266,24 @@ class Program
 
         Console.WriteLine("");
 
-        Supplier supplier_to_find = findSupplier(productContext);
-
-        product.supplier = supplier_to_find;
-
-        Console.WriteLine("");
-
-        Console.Write($"\nDla productu: {product.ProductName} zmieniono dostawcę na: {supplier_to_find.CompanyName}.\n");
-
-        productContext.SaveChanges();
+        Console.WriteLine("Zmienić dostawcę dla produktu na podanego wyżej? (Tak/Nie)");
+        choice = Console.ReadLine();
+        correctAnswer = false;
+        do
+        {
+            switch (choice)
+            {
+                case "Tak":
+                    product.supplier = supplier;
+                    Console.Write($"\nDla productu: {product.ProductName} zmieniono dostawcę na: {supplier.CompanyName}.\n");
+                    productContext.SaveChanges();
+                    correctAnswer = true;
+                    break;
+                case "Nie":
+                    correctAnswer = true;
+                    break;
+            }
+        } while (!correctAnswer);
 
         showAllProducts(productContext);
 
@@ -264,4 +292,112 @@ class Program
 }
 ```
 
----
+--- 
+
+# Zadanie 3 - odwrócenie relacji Supplier -> Product
+
+- Z klasy "Product" został usunięty atrybut "Supplier" zgodnie ze schematem. 
+- W klasie "Supplier" dodano kolekcję produktów, dostarczanych przez danego dostawcę.
+- W kodzie głównego programu został dodany fragment kodu odpowiedzialny za dodanie nowych produktów. W poruwnywniu do zadania 1, jedyną zmianą było ustawienie produktu do dostawcy, zamiast ustawienia dostawcy do produktu. Niżej będzie podany fragment kodu, który uległ zmianie.
+- Klasa ProdContext pozostała bez zmian.
+Schemat zmienionej bazy danych, wygenerowany przez DataGrip:
+
+![](img/2.png)
+
+Jak widać, pomimo odwrócenia relacji, schemat bazy danych się nie zmienił. Entity Framework dokonał optymalizacji, dzięki czemu uniknęliśmy powielania danych w tabeli Suppliers (ponieważ nie możemy trzymać listy w polu). Oprócz tego takie podejście miało by gorsze konsekwencje: każdy rekord miałby nowy SupplierID, mimo że byłby to ten sam dostawca, jedynie mający przypisany inny ProductID. W takiej sytuacji nie bylibyśmy w stanie odróżnic dostawców.
+
+Testowanie dodania nowych produktów i ustawienia ich dostawcy na nowo stworzonego. Tabela Products przed wywołaniem metody dodającej:
+
+![](img/7.png)
+
+Wynik działania programu w postaci konsolowych komunikatów:
+
+![](img/8.png)
+
+Sprawdżmy trwałość zmian za pomocą DataGrip. Tabela Product po dodaniu produktów:
+
+![](img/9.png)
+
+Sprawdżmy trwałość zmian za pomocą DataGrip. Tabela Product po wprowadzeniu zmiany dostawcy:
+
+![](img/10.png)
+
+Kod:
+
+- Product.cs
+
+```c#
+using System.Runtime.Intrinsics.X86;
+
+public class Product
+{
+    public int ProductID { get; set; }
+    public String? ProductName { get; set; }
+    public int UnitsInStock { get; set; }
+    public override string ToString()
+    {
+        return $"{ProductName}: {UnitsInStock} szt.";
+    }
+}
+```
+
+- Supplier.cs
+
+```c#
+public class Supplier
+{
+    public int SupplierID { get; set; }
+    public string CompanyName { get; set; }
+    public string Street { get; set; }
+    public string City { get; set; }
+    public ICollection<Product> Products { get; set; } = new List<Product>();
+    public override string ToString()
+    {
+        return CompanyName;
+    }
+}
+```
+
+- Program.cs (fragment starego kodu)
+
+```c#
+static void Main()
+    {
+        ...
+            product.supplier = supplier;
+        ...
+    }
+```
+
+- Program.cs (fragment nowego kodu)
+
+```c#
+static void Main()
+    {   
+        ...
+
+        do {
+                Console.WriteLine("Dodać nowy produkt? (Tak/Nie)");
+                choice = Console.ReadLine();
+                correctAnswer = false;
+                switch (choice)
+                {
+                    case "Tak":
+                        product = createNewProduct();
+                        productContext.Products.Add(product);
+                        correctAnswer = true;
+                        break;
+                    case "Nie":
+                        correctAnswer = true;
+                        break;
+                }
+                Console.WriteLine("");
+        } while (!correctAnswer || choice == "Tak");
+
+        ...
+
+            supplier.Products.Add(product);
+
+        ...
+    }
+```

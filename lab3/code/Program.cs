@@ -55,7 +55,7 @@ class Program
         int quantity = Int32.Parse(Console.ReadLine());
 
         Product product = new Product { ProductName = prodName, UnitsInStock = quantity };
-        Console.Write($"Został utworzony produkt: {product};");
+        Console.Write($"Został utworzony produkt: {product}");
 
         return product;
     }
@@ -124,6 +124,7 @@ class Program
         ProdContext productContext = new ProdContext();
 
         Supplier supplier = null;
+        Product product = null;
 
         Console.WriteLine("Dodać nowego dostawcę? (Tak/Nie)");
         string choice = Console.ReadLine();
@@ -145,11 +146,30 @@ class Program
             }
         } while (!correctAnswer);
 
+        do
+        {
+            Console.WriteLine("Dodać nowy produkt? (Tak/Nie)");
+            choice = Console.ReadLine();
+            correctAnswer = false;
+            switch (choice)
+            {
+                case "Tak":
+                    product = createNewProduct();
+                    productContext.Products.Add(product);
+                    correctAnswer = true;
+                    break;
+                case "Nie":
+                    correctAnswer = true;
+                    break;
+            }
+            Console.WriteLine("");
+        } while (!correctAnswer || choice == "Tak");
+
         productContext.SaveChanges();
 
-        Console.WriteLine("");
 
-        Product product = findProduct(productContext);
+
+        product = findProduct(productContext);
 
         Console.WriteLine("");
 
@@ -161,7 +181,7 @@ class Program
             switch (choice)
             {
                 case "Tak":
-                    product.supplier = supplier;
+                    supplier.Products.Add(product);
                     Console.Write($"\nDla productu: {product.ProductName} zmieniono dostawcę na: {supplier.CompanyName}.\n");
                     productContext.SaveChanges();
                     correctAnswer = true;
