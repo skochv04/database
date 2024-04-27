@@ -92,7 +92,7 @@ class Program
         string street = Console.ReadLine();
 
         Supplier supplier = new Supplier { CompanyName = companyName, City = city, Street = street };
-        Console.Write($"Został utworzony dostawca: {supplier};");
+        Console.Write($"Został utworzony dostawca: {supplier}.\n");
 
         return supplier;
     }
@@ -123,19 +123,54 @@ class Program
     {
         ProdContext productContext = new ProdContext();
 
-        showAllProducts(productContext);
+        Supplier supplier = null;
 
-        showAllSuppliers(productContext);
+        Console.WriteLine("Dodać nowego dostawcę? (Tak/Nie)");
+        string choice = Console.ReadLine();
+        bool correctAnswer = false;
+        do
+        {
+            switch (choice)
+            {
+                case "Tak":
+                    supplier = createNewSupplier();
+                    productContext.Suppliers.Add(supplier);
+                    correctAnswer = true;
+                    break;
+                case "Nie":
+                    showAllSuppliers(productContext);
+                    supplier = findSupplier(productContext);
+                    correctAnswer = true;
+                    break;
+            }
+        } while (!correctAnswer);
+
+        productContext.SaveChanges();
+
+        Console.WriteLine("");
 
         Product product = findProduct(productContext);
 
-        Supplier supplier = findSupplier(productContext);
+        Console.WriteLine("");
 
-        product.supplier = supplier;
-
-        Console.Write($"\nDla productu: {product.ProductName} zmieniono dostawcę na: {supplier.CompanyName}.\n");
-
-        productContext.SaveChanges();
+        Console.WriteLine("Zmienić dostawcę dla produktu na podanego wyżej? (Tak/Nie)");
+        choice = Console.ReadLine();
+        correctAnswer = false;
+        do
+        {
+            switch (choice)
+            {
+                case "Tak":
+                    product.supplier = supplier;
+                    Console.Write($"\nDla productu: {product.ProductName} zmieniono dostawcę na: {supplier.CompanyName}.\n");
+                    productContext.SaveChanges();
+                    correctAnswer = true;
+                    break;
+                case "Nie":
+                    correctAnswer = true;
+                    break;
+            }
+        } while (!correctAnswer);
 
         showAllProducts(productContext);
 

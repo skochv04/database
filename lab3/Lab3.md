@@ -82,7 +82,7 @@ Schemat zmienionej bazy danych, wygenerowany przez DataGrip:
 
 ![](img/2.png)
 
-Testowanie ustawienia nowego dostawcy dla poprzednio wprowadzonego produktu. Tabela Products przed wywołaniem metody dodającej:
+Testowanie dodania nowego dostawcy i ustawienia dostawcy poprzednio wprowadzonego produktu na dodanego dostawcę. Tabela Products przed wywołaniem metody dodającej:
 
 ![](img/4.png)
 
@@ -93,6 +93,14 @@ Wynik działania programu w postaci konsolowych komunikatów:
 Sprawdżmy trwałość zmian za pomocą DataGrip:
 
 ![](img/5.png)
+
+Testowanie ustawienia dostawcy dla poprzednio wprowadzonego produktu. Wynik działania programu w postaci konsolowych komunikatów:
+
+![](img/6.png)
+
+Sprawdżmy trwałość zmian za pomocą DataGrip:
+
+![](img/7.png)
 
 Kod:
 
@@ -228,17 +236,24 @@ class Program
     {
         ProdContext productContext = new ProdContext();
 
-        showAllProducts(productContext);
+        Supplier supplier = createNewSupplier();
+        productContext.Suppliers.Add(supplier);
 
-        showAllSuppliers(productContext);
+        productContext.SaveChanges();
+
+        Console.WriteLine("");
 
         Product product = findProduct(productContext);
 
-        Supplier supplier = findSupplier(productContext);
+        Console.WriteLine("");
 
-        product.supplier = supplier;
+        Supplier supplier_to_find = findSupplier(productContext);
 
-        Console.Write($"\nDla productu: {product.ProductName} zmieniono dostawcę na: {supplier.CompanyName}.\n");
+        product.supplier = supplier_to_find;
+
+        Console.WriteLine("");
+
+        Console.Write($"\nDla productu: {product.ProductName} zmieniono dostawcę na: {supplier_to_find.CompanyName}.\n");
 
         productContext.SaveChanges();
 
