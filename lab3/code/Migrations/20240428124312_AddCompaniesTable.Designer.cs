@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,14 +10,16 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Lab3.Migrations
 {
     [DbContext(typeof(ProdContext))]
-    partial class ProdContextModelSnapshot : ModelSnapshot
+    [Migration("20240428124312_AddCompaniesTable")]
+    partial class AddCompaniesTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.4");
 
-            modelBuilder.Entity("Lab3.CompanyH", b =>
+            modelBuilder.Entity("Lab3.Company", b =>
                 {
                     b.Property<int>("CompanyId")
                         .ValueGeneratedOnAdd()
@@ -45,7 +48,7 @@ namespace Lab3.Migrations
 
                     b.HasKey("CompanyId");
 
-                    b.ToTable("CompaniesH");
+                    b.ToTable("Companies");
                 });
 
             modelBuilder.Entity("Product", b =>
