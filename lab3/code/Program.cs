@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿
 
 // // Console.WriteLine("Podaj nazwę produktu: ");
 // // String? prodName = Console.ReadLine();
@@ -45,16 +44,16 @@ using System.Linq;
 // //     Console.WriteLine(pName);
 // // }
 
-class Program
+internal class Program
 {
     private static Product createNewProduct()
     {
         Console.Write("Podaj nazwę nowego produktu: ");
-        string prodName = Console.ReadLine();
+        var prodName = Console.ReadLine();
         Console.Write("Podaj ilość jednostek danego produktu dostępnych w sklepie: ");
-        int quantity = Int32.Parse(Console.ReadLine());
+        var quantity = int.Parse(Console.ReadLine());
 
-        Product product = new Product { ProductName = prodName, UnitsInStock = quantity };
+        var product = new Product { ProductName = prodName, UnitsInStock = quantity };
         Console.Write($"Został utworzony produkt: {product}");
 
         return product;
@@ -63,11 +62,11 @@ class Program
     private static Product findProduct(ProdContext productContext)
     {
         Console.Write("Podaj ID produktu do wyszukiwania: ");
-        int prodID = Int32.Parse(Console.ReadLine());
+        var prodID = int.Parse(Console.ReadLine());
 
         var query = from prod in productContext.Products
-                    where prod.ProductID == prodID
-                    select prod;
+            where prod.ProductID == prodID
+            select prod;
 
         return query.FirstOrDefault();
     }
@@ -75,23 +74,19 @@ class Program
     private static void showAllProducts(ProdContext productContext)
     {
         Console.WriteLine("Lista produktów: ");
-        foreach (Product product in productContext.Products)
-        {
-            Console.WriteLine($"{product.ProductID} | {product}");
-        }
-
+        foreach (var product in productContext.Products) Console.WriteLine($"{product.ProductID} | {product}");
     }
 
     private static Supplier createNewSupplier()
     {
         Console.Write("Podaj nazwę nowego dostawcy: ");
-        string companyName = Console.ReadLine();
+        var companyName = Console.ReadLine();
         Console.Write("Podaj nazwę miasta: ");
-        string city = Console.ReadLine();
+        var city = Console.ReadLine();
         Console.Write("Podaj nazwę ulicy: ");
-        string street = Console.ReadLine();
+        var street = Console.ReadLine();
 
-        Supplier supplier = new Supplier { CompanyName = companyName, City = city, Street = street };
+        var supplier = new Supplier { CompanyName = companyName, City = city, Street = street };
         Console.Write($"Został utworzony dostawca: {supplier}.\n");
 
         return supplier;
@@ -100,11 +95,11 @@ class Program
     private static Supplier findSupplier(ProdContext productContext)
     {
         Console.Write("Podaj ID dostawcy do wyszukiwania: ");
-        int supplierID = Int32.Parse(Console.ReadLine());
+        var supplierID = int.Parse(Console.ReadLine());
 
         var query = from supplier in productContext.Suppliers
-                    where supplier.SupplierID == supplierID
-                    select supplier;
+            where supplier.SupplierID == supplierID
+            select supplier;
 
         return query.FirstOrDefault();
     }
@@ -112,23 +107,19 @@ class Program
     private static void showAllSuppliers(ProdContext productContext)
     {
         Console.WriteLine("Lista dostawców: ");
-        foreach (Supplier supplier in productContext.Suppliers)
-        {
-            Console.WriteLine($"{supplier.SupplierID} | {supplier}");
-        }
-
+        foreach (var supplier in productContext.Suppliers) Console.WriteLine($"{supplier.SupplierID} | {supplier}");
     }
 
-    static void Main()
+    private static void Main()
     {
-        ProdContext productContext = new ProdContext();
+        var productContext = new ProdContext();
 
         Supplier supplier = null;
         Product product = null;
 
         Console.WriteLine("Dodać nowego dostawcę? (Tak/Nie)");
-        string choice = Console.ReadLine();
-        bool correctAnswer = false;
+        var choice = Console.ReadLine();
+        var correctAnswer = false;
         do
         {
             switch (choice)
@@ -162,11 +153,11 @@ class Program
                     correctAnswer = true;
                     break;
             }
+
             Console.WriteLine("");
         } while (!correctAnswer || choice == "Tak");
 
         productContext.SaveChanges();
-
 
 
         product = findProduct(productContext);
@@ -183,7 +174,8 @@ class Program
                 case "Tak":
                     supplier.Products.Add(product);
                     product.supplier = supplier;
-                    Console.Write($"\nDla productu: {product.ProductName} zmieniono dostawcę na: {supplier.CompanyName}.\n");
+                    Console.Write(
+                        $"\nDla productu: {product.ProductName} zmieniono dostawcę na: {supplier.CompanyName}.\n");
                     productContext.SaveChanges();
                     correctAnswer = true;
                     break;

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+
 public class ProdContext : DbContext
 {
     public DbSet<Product> Products { get; set; }

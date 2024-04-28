@@ -1,27 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "D:\\AGH\\4 semestr\\BD\\BD\\lab3\\code\\Lab3.csproj": {}
+    "C:\\Users\\wikto\\RiderProjects\\BD\\lab3\\lab3\\code\\Lab3.csproj": {}
   },
   "projects": {
-    "D:\\AGH\\4 semestr\\BD\\BD\\lab3\\code\\Lab3.csproj": {
+    "C:\\Users\\wikto\\RiderProjects\\BD\\lab3\\lab3\\code\\Lab3.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\AGH\\4 semestr\\BD\\BD\\lab3\\code\\Lab3.csproj",
+        "projectUniqueName": "C:\\Users\\wikto\\RiderProjects\\BD\\lab3\\lab3\\code\\Lab3.csproj",
         "projectName": "Lab3",
-        "projectPath": "D:\\AGH\\4 semestr\\BD\\BD\\lab3\\code\\Lab3.csproj",
-        "packagesPath": "C:\\Users\\govaz\\.nuget\\packages\\",
-        "outputPath": "D:\\AGH\\4 semestr\\BD\\BD\\lab3\\code\\obj\\",
+        "projectPath": "C:\\Users\\wikto\\RiderProjects\\BD\\lab3\\lab3\\code\\Lab3.csproj",
+        "packagesPath": "C:\\Users\\wikto\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\wikto\\RiderProjects\\BD\\lab3\\lab3\\code\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\govaz\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\wikto\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -71,7 +69,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.101/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.204/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
