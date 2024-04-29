@@ -16,4 +16,13 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.4" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="zad5\.idea\.idea.zad5.dir\.idea\.gitignore" />
+    <Content Include="zad5\.idea\.idea.zad5.dir\.idea\encodings.xml" />
+    <Content Include="zad5\.idea\.idea.zad5.dir\.idea\indexLayout.xml" />
+    <Content Include="zad5\.idea\.idea.zad5.dir\.idea\projectSettingsUpdater.xml" />
+    <Content Include="zad5\.idea\.idea.zad5.dir\.idea\workspace.xml" />
+    <Content Include="zad5\zad5.csproj" />
+  </ItemGroup>
+
 </Project>
