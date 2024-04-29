@@ -493,3 +493,375 @@ static void Main()
         ...
     }
 ```
+
+
+# Zadanie 6 (e) - Table-Per-Hierarchy:
+
+Zgodnie ze strategią Table-Per-Hierarchy, tworzymy jedną tabelę Company, która przechowuje wszystkie typy klas
+
+Supplier.cs:
+
+```c#
+namespace zad5;
+
+internal class Supplier : Company
+{
+    public int SupplierID { get; set; }
+    public string BankAccountNumber { get; set; } = String.Empty;
+
+    public override string ToString()
+    {
+        return $"{base.ToString()} (dostawca)";
+    }
+}
+```
+
+Customer.cs:
+
+```c#
+namespace zad5;
+
+internal class Customer : Company
+{
+    public int CustomerID { get; set; }
+    public int Discount { get; set; } // In %
+
+    public override string ToString()
+    {
+        return $"{base.ToString()} (klient)";
+    }
+}
+```
+
+Company.cs:
+
+```c#
+namespace zad5;
+
+internal abstract class Company
+{
+    public int CompanyID { get; set; }
+    public string CompanyName { get; set; } = String.Empty;
+    public string Street { get; set; } = String.Empty;
+    public string City { get; set; } = String.Empty;
+    public string ZipCode { get; set; } = String.Empty;
+
+    public override string ToString()
+    {
+        return $"[{CompanyID}] {CompanyName}";
+    }
+}
+```
+
+CreateCompany()
+
+```c#
+private static Company? CreateCompany()
+    {
+        Console.Write("Podaj typ nowej firmy (Supplier/Customer): ");
+        var companyType = Console.ReadLine();
+
+        Console.Write("Podaj nazwę nowej firmy: ");
+        var companyName = Console.ReadLine();
+
+        Console.Write("Podaj ulicę nowej firmy: ");
+        var companyStreet = Console.ReadLine();
+
+        Console.Write("Podaj miasto nowej firmy: ");
+        var companyCity = Console.ReadLine();
+
+        Console.Write("Podaj kod pocztowy nowej firmy: ");
+        var companyZipCode = Console.ReadLine();
+
+        switch (companyType?.Trim().ToLower())
+        {
+            case "supplier":
+                Console.Write("Podaj numer konta bankowego nowej firmy: ");
+                String? companyBankAccountNumber = Console.ReadLine();
+                return new Supplier
+                {
+                    CompanyName = companyName,
+                    City = companyCity,
+                    Street = companyStreet,
+                    ZipCode = companyZipCode,
+                    BankAccountNumber = companyBankAccountNumber
+                };
+
+            case "customer":
+                Console.Write("Podaj zniżkę nowej firmy: ");
+                int companyDiscount = int.Parse(Console.ReadLine());
+                return new Customer
+                {
+                    CompanyName = companyName,
+                    City = companyCity,
+                    Street = companyStreet,
+                    ZipCode = companyZipCode,
+                    Discount = companyDiscount,
+                };
+            default:
+                Console.WriteLine("Nie podano typu firmy!");
+                return null;
+        }
+    }
+```
+
+FindCompany()
+
+```c#
+    private static Company? FindCompany(CompanyContext productContext)
+    {
+        Console.Write("Podaj ID firmy do wyszukiwania: ");
+        var companyId = int.Parse(Console.ReadLine());
+    
+        var query = from comp in productContext.Companies
+            where comp.CompanyID == companyId
+            select comp;
+    
+        return query.FirstOrDefault();
+    }
+```
+
+ShowAllSuppliers()
+
+```c#
+private static void ShowAllSuppliers(CompanyContext companyContext)
+    {
+        Console.WriteLine("Lista dostawców: ");
+        
+        foreach (Supplier customer in companyContext.Suppliers)
+        {
+            Console.WriteLine(customer);
+        }
+    }
+```
+
+ShowAllCustomers()
+
+```c#
+   private static void ShowAllCustomers(CompanyContext companyContext)
+    {
+        Console.WriteLine("Lista klientów: ");
+        foreach (Customer customer in companyContext.Customers)
+        {
+            Console.WriteLine(customer);
+        }
+    }
+```
+
+ShowAllCompanies()
+
+```c#
+     private static void ShowAllCompanies(CompanyContext companyContext)
+    {
+        Console.WriteLine("Lista wszystkich firm: ");
+        foreach (Company company in companyContext.Companies)
+        {
+            Console.WriteLine(company);
+        }
+    }
+```
+
+main programu Program.cs:
+
+```c#
+    private static void Main()
+    {
+        var companyContext = new CompanyContext();
+        
+        Company? company = null;
+        var correctAnswer = false;
+        String? choice;
+        do
+        {
+            Console.WriteLine("Dodać nową firmę? (Tak/Nie)");
+            choice = Console.ReadLine();
+            switch (choice)
+            {
+                case "Tak":
+                    company = CreateCompany();
+                    if (company == null)
+                    {
+                        return;
+                    }
+
+                    companyContext.Companies.Add(company);
+                    companyContext.SaveChanges();
+                    correctAnswer = true;
+                    break;
+                case "Nie":
+                    correctAnswer = true;
+                    companyContext.SaveChanges();
+                    break;
+            }
+        } while (!correctAnswer || choice == "Tak");
+
+        ShowAllCompanies(companyContext);
+        ShowAllSuppliers(companyContext);
+        ShowAllCustomers(companyContext);
+    }
+```
+
+RemoveCompany.cs
+
+```c#
+    private static void RemoveCompany(CompanyContext companyContext)
+    {
+        Console.Write("Podaj ID firmy do usunięcia: ");
+        var companyId = int.Parse(Console.ReadLine());
+        var company = companyContext.Companies.FirstOrDefault(comp => comp.CompanyID == companyId);
+    
+        if (company == null)
+        {
+            Console.WriteLine("Nie znaleziono firmy o podanym ID.");
+            return;
+        }
+    
+        companyContext.Companies.Remove(company);
+        companyContext.SaveChanges();
+        Console.WriteLine("Firma została usunięta.");
+    }
+```
+
+Po upewnieniu się, że wszystko działa poprawnie, dodajemy przykładowego Suppliera, a następnie Customera
+
+![](img/img-zad5/supplier.png)
+
+
+Widok bazy danych po wykonaniu:
+
+```sql 
+select * from Customers
+```
+
+![](img/img-zad5/11.png)
+
+Następnie dodajemy tą samą metodą wiele Supplierów oraz Customersów
+
+![](img/img-zad5/1.png)
+
+...
+
+![](img/img-zad5/2.png)
+
+
+Widok bazy danych:
+
+![](img/img-zad5/4.png)
+
+Przykładowe działanie FindCompany:
+
+![](img/img-zad5/find.png)
+
+Diagram tabeli Companies:
+
+![](img/img-zad5/5.png)
+
+![](img/img-zad5/6.png)
+
+
+Jak widać jest to zwykła tabela przechowująca różne typy, rozróżniająca je za 
+pomocą pola Discriminator
+
+# Zadanie 7 (f) - Table-Per-Type:
+
+Implementacja tego zadania wygląda identycznie. Zmianie uległy jedynie dwie klasy: Customer oraz Supplier do 
+których dodalismy taką adnotacje przez nazwą klasy: [Table("Nazwa_KLasy")] 
+
+Supplier.cs:
+
+```c#
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace zad5;
+
+[Table("Supplier")] 
+internal class Supplier : Company
+{
+    public int SupplierID { get; set; }
+    public string BankAccountNumber { get; set; } = String.Empty;
+
+    public override string ToString()
+    {
+        return $"{base.ToString()} (dostawca)";
+    }
+}
+```
+
+Customer.cs:
+
+```c#
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace zad5;
+
+[Table("Customers")] 
+internal class Customer : Company
+{
+    public int CustomerID { get; set; }
+    public int Discount { get; set; } // In %
+
+    public override string ToString()
+    {
+        return $"{base.ToString()} (klient)";
+    }
+}
+```
+Następnie możemy wykonać wszystkie opracje tak jak w poprzednim zadaniu:
+
+Dodajemy Suppliera oraz Customera:
+
+![](img/img-zad6/2.png)
+
+Wynik bazy danych po wykonaniu:  select * from Companies
+
+![](img/img-zad6/3.png)
+
+Wynika bazy danych po wykonaniu: select * from Customers
+![](img/img-zad6/4.png)
+
+
+Wynika bazy danych po wykonaniu: select * from Supplier
+
+![](img/img-zad6/5.png)
+
+Szkielet bazy danycy:
+
+![](img/img-zad6/schemat.png)
+
+Schemat bazy danych:
+
+![](img/img-zad6/diagram.png)
+
+# Zadanie 8 (g) - Podsumowanie:
+
+
+### Opis strategi dziedziczenia: Table-Per-Hierarchy:
+
+Tworzona jest jedna duża tabela przechowująca wszystkie wspólne pola klas dziedziczących po niej jak i pola charakterystyczne dla
+poszczególnych typów dziedziczących. Jesli dany typ nie ma takiego pola, w takiej tabeli wpisywane jest null.
+
+#### Zalety:
+ - zmniejszenie wykonywania operacji join w porównaniu do operacji na tabelach wykorzystujących Table-Per-Type co może
+prowadzić do zwiększenia wydajnosci zapytań
+
+#### Wady:
+ - marnowanie wolnej pamięci na dużą ilosc pustych komórek - null (szczegolnie zawuazalne jesli kilka klas dziedziczy z jednej
+głównej klasy)
+
+### Opis strategi dziedziczenia: Table-Per-Type:
+
+ - Tworzone jest kilka tabel zarówna dla klas dziedziczących jak i dla klasy po której dziedziczą te klasy. Każda klasa dziedzicząca
+zawiera indywidualne atrybuty natomiast klasa po której dziedziczą inne zawiera pola wspólne dla nich wszystkich.
+ - Tabele klas dziedziczących są łączone z tabelą klasy, z której dziedziczą, przy pomocy relacji 1 do 1
+
+#### Zalety:
+ - Nie przechowujemy już pustych pól - null, dzieki czemu wszystkie nasze wartosci stanowią dane, które zostały wstępnie 
+wprowadzone do bazy,
+ - W przypadku wielu klasy dziedziczących pozbywając się dużej ilosci nulli zwiekszamy czytelnosc naszej bazie,
+
+#### Wady:
+- Konieczne jest wykonywanie wielu operacji join (joinujemy za kazdym razem klasę po której dziedziczą inne klasy z
+klasą dziedziczącą jesli chcemy wyciagnac bardziej szczegolowe dane o konkretnym typie klasy)
+
+
+
