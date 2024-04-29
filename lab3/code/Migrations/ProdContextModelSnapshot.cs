@@ -16,38 +16,6 @@ namespace Lab3.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.4");
 
-            modelBuilder.Entity("Lab3.CompanyH", b =>
-                {
-                    b.Property<int>("CompanyId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("BankAccountNumber")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("City")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CompanyName")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CompanyType")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal?>("Discount")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Street")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ZipCode")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("CompanyId");
-
-                    b.ToTable("CompaniesH");
-                });
-
             modelBuilder.Entity("Product", b =>
                 {
                     b.Property<int>("ProductID")
