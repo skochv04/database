@@ -224,7 +224,7 @@ Podejście tabelaryczne jest znane z modelu relacyjnego: uporządkujemy dane w t
 
 - Zalety
     - Bardziej przejrzysty model danych: dane są pogrupowane w taki sposób, że nie ma potrzeby nadużywania dokumentów zagnieżdżonych
-    - Brak redundancji danych
+    - Brak redundancji danych (oprócz sytuacji, gdzie "rejestrujemy" referencje w obu encjach relacji (w MongoDB), np. Product ma informacje o swoim Dostawce, a Dostawca ma informacje o swoich produktach)
     - Szybka modyfikacji danych: dzięki temu, że nie ma redundancji, potrzebujemy modyfikować dane tylko w jednym miejscu
     - Zapewniona spójność danych: modyfikacja danych tylko w jednym miejscu zapewnia, że dane będą spójne
     - Większa wydajność w sytuacji, gdy potrzebujemy danych dotyczących konkretnego małego dokumentu, a nie całego dokumentu wraz z zagnieżdżonymi dokumentami
@@ -235,6 +235,8 @@ Podejście tabelaryczne jest znane z modelu relacyjnego: uporządkujemy dane w t
     - W przypadku wielokrotnego odczytywania danych z powiązanych między sobą dokumentów różnych kolekcji zmniejsza się wydajność, ponieważ za każdym razem potrzebujemy ponownie łączyć dane
 
 #### b)  Utworzenie kolekcji i wypełnienie kolekcji przykładowymi danymi
+
+Przykładowa struktura bazy danych wygląda następująco:
 
 ```js
 Companies
@@ -288,7 +290,7 @@ Reviews
 
 Stworzenie bazy danych według wyżej przedstawionego pomysłu:
 ```js
-use Trip_database
+use tab_trip_database
 
 db.createCollection("Companies")
 db.createCollection("Customers")
@@ -304,6 +306,7 @@ Kilka przydatnych informacji:
 - took_place ustawione na True w kolekcji Trips oznacza, że wycieczka się już odbyła,
 - review_id oraz ticket_id to liczby 3-cyfrowe zaczynające się od trip_id. 3 bilety dla np. trip_id=1 to: 101,102,103,
 - seats_no to liczby odpowiadające numerom ticketów: np dla ticketa 102, seats_no to 2 itd
+- ticket_status to jeden symbol spośród 'N', 'P' i 'C', oznaczających kolekno "New", "Paid" i "Canceled"
 
 ```js
 db.Companies.insertMany([
@@ -356,13 +359,13 @@ db.Reviews.insertMany([
 
 #### a)  Analiza danego wariantu
 
-W takim podejściu uporządkujemy dane w taki sposób, że każda kolekcja przedstawia pewien rodzaj encji, ale nie potrzebujemy przedstawiać wszystkie encje w osobnych kolekcjach. Encje mogą być powiązane między sobą przez referencje (w przypadku kilku dokumentów w różnych kolekcjach) albo za pomocą tablic i dokumentów zagnieżdżonych.
+W takim podejściu uporządkujemy dane w taki sposób, że każda kolekcja przedstawia pewien rodzaj encji, ale nie potrzebujemy przedstawiać wszystkie encje w osobnych kolekcjach. Encje mogą być powiązane między sobą przez referencje (w przypadku kilku dokumentów w różnych kolekcjach) albo za pomocą dokumentów zagnieżdżonych.
 
 - Zalety
     - Brak konieczności używania kosztownych operacji do łączenia kilku dokumentów różnych kolekcji
     - Dobre podejście w przypadku rzadkiego modyfikowania danych, ponieważ mamy redundację danych
     - Lepsza wydajność w przypadku, gdy potrzebujemy informacji z całego dokumentu wraz z zagnieżdżonymi dokumentami
-    - Utrzymywanie powiązynch elementów w jednym dokumencie poprzez użycie dokumentów zagnieżdżonych i tablic
+    - Utrzymywanie powiązynch elementów w jednym dokumencie poprzez użycie dokumentów zagnieżdżonych
 
 - Wady
     - Redundacja danych
