@@ -45,19 +45,19 @@ W niektórych przypadkach może być potrzebne wykorzystanie mechanizmu Aggregat
 
 1. Zwróć dane wszystkich restauracji (kolekcja `business`, pole `categories` musi zawierać wartość "Restaurants"), które są otwarte w poniedziałki (pole hours) i mają ocenę co najmniej 4 gwiazdki (pole `stars`).  Zapytanie powinno zwracać: nazwę firmy, adres, kategorię, godziny otwarcia i gwiazdki. Posortuj wynik wg nazwy firmy.
 
-```sql
-db.business.find({categories: "Restaurants", "hours.Monday.open": {$exists: true}, stars: {$gt: 4}},
+```js
+db.business.find({categories: "Restaurants", "hours.Monday.open": {$exists: true}, stars: {$gte: 4}},
  {"_id": 0, "name": 1, "full_address": 1, "categories": 1, "hours": 1, "stars": 1}).sort({"name": 1})
- 
 ```
 
 Wynik zapytania:
+
 ![](img/business_query.png)
 
 
 2. Ile każda firma otrzymała ocen/wskazówek (kolekcja `tip` ) w 2012. Wynik powinien zawierać nazwę firmy oraz liczbę ocen/wskazówek Wynik posortuj według liczby ocen (`tip`).
 
-```sql
+```js
 db.tip.aggregate([
     {$match: {date: {$gte: "2012-01-01", $lte: "2012-12-31"}}},
     {$group: {_id: "$business_id", totalTips: {$sum: 1}}},
@@ -71,7 +71,7 @@ Wynik zapytania:
 
 3. Recenzje mogą być oceniane przez innych użytkowników jako `cool`, `funny` lub `useful` (kolekcja `review`, pole `votes`, jedna recenzja może mieć kilka głosów w każdej kategorii).  Napisz zapytanie, które zwraca dla każdej z tych kategorii, ile sumarycznie recenzji zostało oznaczonych przez te kategorie (np. recenzja ma kategorię `funny` jeśli co najmniej jedna osoba zagłosowała w ten sposób na daną recenzję).
 
-```sql
+```js
 db.review1.aggregate([
     {$group: {
     _id: "Number_of_categories",
@@ -94,7 +94,7 @@ Wynik zapytania:
 
 4. Zwróć dane wszystkich użytkowników (kolekcja `user`), którzy nie mają ani jednego pozytywnego głosu (pole `votes`) z kategorii (`funny` lub `useful`), wynik posortuj alfabetycznie według nazwy użytkownika.
 
-```sql
+```js
 db.user.aggregate([
     {
         $group: {
@@ -123,13 +123,13 @@ db.user.aggregate([
 ])
 ```
 
+![](img/users_result.png)
+
 5. Wyznacz, jaką średnia ocenę uzyskała każda firma na podstawie wszystkich recenzji (kolekcja `review`, pole `stars`). Ogranicz do firm, które uzyskały średnią powyżej 3 gwiazdek.
 
-	a) Wynik powinien zawierać id firmy oraz średnią ocenę. Posortuj wynik wg id firmy.
+a) Wynik powinien zawierać id firmy oraz średnią ocenę. Posortuj wynik wg id firmy.
 
-a)
-
-```sql
+```js
 db.review1.aggregate([
     {$group: {
         _id: "$business_id",
@@ -150,12 +150,9 @@ Wynika zapytania A:
 
 5. Wyznacz, jaką średnia ocenę uzyskała każda firma na podstawie wszystkich recenzji (kolekcja `review`, pole `stars`). Ogranicz do firm, które uzyskały średnią powyżej 3 gwiazdek.
 
-	b) Wynik powinien zawierać nazwę firmy oraz średnią ocenę. Posortuj wynik wg nazwy firmy.
+b) Wynik powinien zawierać nazwę firmy oraz średnią ocenę. Posortuj wynik wg nazwy firmy.
 
-b)
-
-
-```sql
+```js
 db.review1.aggregate([
     {$group: {
         _id: "$business_id",
@@ -183,6 +180,7 @@ db.review1.aggregate([
 ```
 
 Wynik zapytania B:
+
 ![](img/businessB.png)
 
 
@@ -271,7 +269,7 @@ Reviews
 ```
 
 Stworzenie bazy danych według wyżej przedstawionego pomysłu:
-```sql
+```js
 use Trip_database
 
 db.createCollection("Companies")
@@ -289,7 +287,7 @@ Kilka przydatnych informacji:
 - review_id oraz ticket_id to liczby 3-cyfrowe zaczynające się od trip_id. 3 bilety dla np. trip_id=1 to: 101,102,103,
 - seats_no to liczby odpowiadające numerom ticketów: np dla ticketa 102, seats_no to 2 itd
 
-```sql
+```js
 db.Companies.insertMany([
   { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000001")}, "companies_id": 1, "organized_trips_id": [1, 2], "company_name": "Adventure Works" },
   { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000002")}, "companies_id": 2, "organized_trips_id": [3, 4], "company_name": "Travel Corp" },
