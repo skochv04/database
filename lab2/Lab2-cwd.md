@@ -208,7 +208,7 @@ a) Warto zaproponować/rozważyć różne warianty struktury bazy danych i dokum
 
 b) Kolekcje należy wypełnić przykładowymi danymi
 
-c) W kontekście zaprezentowania wad/zalet należy zaprezentować kilka przykładów/zapytań/zadań/operacji oraz dla których dedykowany jest dany wariantów
+c) W kontekście zaprezentowania wad/zalet należy zaprezentować kilka przykładów/zapytań/zadań/operacji oraz dla których dedykowany jest dany wariant
 
 W sprawozdaniu należy zamieścić przykładowe dokumenty w formacie JSON ( pkt a) i b)), oraz kod zapytań/operacji (pkt c)), wraz z odpowiednim komentarzem opisującym strukturę dokumentów oraz polecenia ilustrujące wykonanie przykładowych operacji na danych
 
@@ -216,8 +216,26 @@ Do sprawozdania należy kompletny zrzut wykonanych/przygotowanych baz danych (ta
 
 
 ## Zadanie 2  - rozwiązanie
+### Podejście tabelaryczne
 
-Sposób I:
+#### a)  Analiza danego wariantu
+
+Podejście tabelaryczne jest znane z modelu relacyjnego: uporządkujemy dane w taki sposób, że każda tabela/kolekcja reprezentuje pewien rodzaj encji, np. Klienci, Nauczyciele, Przedmioty. Encje są powiązane między sobą przez referencje.
+
+- Zalety
+    - Bardziej przejrzysty model danych: dane są pogrupowane w taki sposób, że nie ma potrzeby nadużywania dokumentów zagnieżdżonych
+    - Brak redundancji danych
+    - Szybka modyfikacji danych: dzięki temu, że nie ma redundancji, potrzebujemy modyfikować dane tylko w jednym miejscu
+    - Zapewniona spójność danych: modyfikacja danych tylko w jednym miejscu zapewnia, że dane będą spójne
+    - Większa wydajność w sytuacji, gdy potrzebujemy danych dotyczących konkretnego małego dokumentu, a nie całego dokumentu wraz z zagnieżdżonymi dokumentami
+
+- Wady
+    - Konieczność używania operacji łączenia dokumentów różnych kolekcji w sytuacji, gdy potrzebujemy dokument wraz z dokumentami, które znajdują się z nim w relacji
+    - Konieczność użycia złożonych zapytań (w MongoDB) do łączenia wielu dokumentów z różnych kolekcji
+    - W przypadku wielokrotnego odczytywania danych z powiązanych między sobą dokumentów różnych kolekcji zmniejsza się wydajność, ponieważ za każdym razem potrzebujemy ponownie łączyć dane
+
+#### b)  Utworzenie kolekcji i wypełnienie kolekcji przykładowymi danymi
+
 ```js
 Companies
 {
@@ -334,7 +352,24 @@ db.Reviews.insertMany([
 ```
 
 
+### Podejście dokumentowe
 
+#### a)  Analiza danego wariantu
+
+W takim podejściu uporządkujemy dane w taki sposób, że każda kolekcja przedstawia pewien rodzaj encji, ale nie potrzebujemy przedstawiać wszystkie encje w osobnych kolekcjach. Encje mogą być powiązane między sobą przez referencje (w przypadku kilku dokumentów w różnych kolekcjach) albo za pomocą tablic i dokumentów zagnieżdżonych.
+
+- Zalety
+    - Brak konieczności używania kosztownych operacji do łączenia kilku dokumentów różnych kolekcji
+    - Dobre podejście w przypadku rzadkiego modyfikowania danych, ponieważ mamy redundację danych
+    - Lepsza wydajność w przypadku, gdy potrzebujemy informacji z całego dokumentu wraz z zagnieżdżonymi dokumentami
+    - Utrzymywanie powiązynch elementów w jednym dokumencie poprzez użycie dokumentów zagnieżdżonych i tablic
+
+- Wady
+    - Redundacja danych
+    - Utrudnienia modyfikacji: w konsekwencji redundacji danych potrzebujemy modyfikować te same dane wielokrotnie w różnych miejscah
+    - Konieczność użycia bardziej złożonych zapytań w przypadku, gdy potrzebujemy dostać się do informacji zawartych w dokumentach zagnieżdżonych
+    - W szczególnych przypadkach nieprzejżysty model danych (np. w przypadku wielokrotnego zagnieżdżenia dokumentów w zagnieżdżnych dokumentach)
+    - Brak zagwarantowanej spójności danych
 
 
 ---
