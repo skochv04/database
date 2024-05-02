@@ -251,44 +251,44 @@ Przykładowa struktura bazy danych wygląda następująco:
 ```js
 Companies
 {
-	"_id": ObjectId, 
-	"companies_id": Number,
-	"name": String, 
+	"_id": Number,
 	"organized_trips_id": [Number], 
+	"company_name": String
 }
 
 Customers
 {
-	"_id": ObjectId, 
-	"customer_id": Number,
+	"_id": Number,
+	"owned_tickets_id": [Number],  
+	"customer_review_id": [Number],
 	"first_name": String,
 	"last_name": String, 
-	"owned_tickets_id": [Number], 
-	"customer_review_id": [Number] 
 }
 
 Trips 
 {
-	"_id": ObjectId, 
-	"trip_id": Number, 
+	"_id": Number,  
+	"company_id": [Number], 
 	"tickets_id": [Number], 
 	"date": Date, 
 	"location": String, 
-	"trip_review_id": [Number] 
+	"trip_review_id": [Number],
+    "took_place": Boolean
 }
 
 Tickets 
 {
-	"_id": ObjectId, 
-	"ticket_id": Number, 
+	"_id": Number,  
+	"trip_id": [Number], 
 	"reserved_seat_no": Number, 
-	"last_name_person": String 
+    "ticket_status": String, 
+    "first_name": String,
+	"last_name": String 
 }
 
 Reviews
 {
-	"_id": ObjectId,
-	"review_id": Number, 
+	"_id": Number, 
 	"customer_id": Number,
 	"trip_id": Number, 
 	"company_id": Number, 
@@ -316,53 +316,95 @@ Kilka przydatnych informacji:
 - took_place ustawione na True w kolekcji Trips oznacza, że wycieczka się już odbyła,
 - review_id oraz ticket_id to liczby 3-cyfrowe zaczynające się od trip_id. 3 bilety dla np. trip_id=1 to: 101,102,103,
 - seats_no to liczby odpowiadające numerom ticketów: np dla ticketa 102, seats_no to 2 itd
-- ticket_status to jeden symbol spośród 'N', 'P' i 'C', oznaczających kolekno "New", "Paid" i "Canceled"
+- ticket_status to jeden symbol spośród 'N', 'P' i 'C', oznaczających kolejno "New", "Paid" i "Canceled"
 
 ```js
 db.Companies.insertMany([
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000001")}, "companies_id": 1, "organized_trips_id": [1, 2], "company_name": "Adventure Works" },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000002")}, "companies_id": 2, "organized_trips_id": [3, 4], "company_name": "Travel Corp" },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000003")}, "companies_id": 3, "organized_trips_id": [5], "company_name": "Holiday Makers" },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000004")}, "companies_id": 4, "organized_trips_id": [6, 7], "company_name": "Globe Trotters" },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000005")}, "companies_id": 5, "organized_trips_id": [8], "company_name": "Pathfinders" }
+  { "_id": 1, "organized_trips_id": [1, 2], "company_name": "Adventure Works" },
+  { "_id": 2, "organized_trips_id": [3, 4], "company_name": "Travel Corp" },
+  { "_id": 3, "organized_trips_id": [5], "company_name": "Holiday Makers" },
+  { "_id": 4, "organized_trips_id": [6, 7], "company_name": "Globe Trotters" },
+  { "_id": 5, "organized_trips_id": [8], "company_name": "Pathfinders" }
 ])
 
 db.Customers.insertMany([
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000006")}, "customer_id": 1, "owned_tickets_id": [101, 102, 504], "customer_review_id": [101, 102], "first_name": "John", "last_name": "Doe" },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000007")}, "customer_id": 2, "owned_tickets_id": [201], "customer_review_id": [201], "first_name": "Anna", "last_name": "Smith" },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000008")}, "customer_id": 3, "owned_tickets_id": [401], "customer_review_id": [], "first_name": "David", "last_name": "Brown" },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000009")}, "customer_id": 4, "owned_tickets_id": [501, 502], "customer_review_id": [], "first_name": "Lisa", "last_name": "White" },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c300000a")}, "customer_id": 5, "owned_tickets_id": [503], "customer_review_id": [], "first_name": "Mark", "last_name": "Taylor" }
+  { "_id": 1, "owned_tickets_id": [101, 504], "customer_review_id": [101], "first_name": "John", "last_name": "Doe" },
+  { "_id": 2, "owned_tickets_id": [201], "customer_review_id": [201], "first_name": "Anna", "last_name": "Smith" },
+  { "_id": 3, "owned_tickets_id": [102, 301], "customer_review_id": [102, 301], "first_name": "David", "last_name": "Brown" },
+  { "_id": 4, "owned_tickets_id": [501, 502], "customer_review_id": [], "first_name": "Lisa", "last_name": "White" },
+  { "_id": 5, "owned_tickets_id": [503], "customer_review_id": [], "first_name": "Mark", "last_name": "Taylor" }
 ])
 
-
 db.Trips.insertMany([
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c300000b")}, "trip_id": 1, "tickets_id": [101, 102, 103], "date": {"$date": "2024-04-15T00:00:00Z"}, "location": "Warsaw", "trip_review_id": [100, 101], "took_place": true },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c300000c")}, "trip_id": 2, "tickets_id": [201, 202], "date": {"$date": "2024-05-20T00:00:00Z"}, "location": "Krakow", "trip_review_id": [201, 202], "took_place": true },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c300000d")}, "trip_id": 3, "tickets_id": [301], "date": {"$date": "2024-06-10T00:00:00Z"}, "location": "Gdansk", "trip_review_id": [301], "took_place": true },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c300000e")}, "trip_id": 4, "tickets_id": [401], "date": {"$date": "2024-07-15T00:00:00Z"}, "location": "Poznan", "trip_review_id": [], "took_place": false },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c300000f")}, "trip_id": 5, "tickets_id": [501, 502, 503, 504, 505], "date": {"$date": "2024-08-25T00:00:00Z"}, "location": "Wroclaw", "trip_review_id": [], "took_place": false }
+  { "_id": 1, "company_id": 1, "tickets_id": [101, 102], "date": {"$date": "2024-04-15T00:00:00Z"}, "location": "Warsaw", "trip_review_id": [100, 101], "took_place": true },
+  { "_id": 2, "company_id": 1, "tickets_id": [201], "date": {"$date": "2024-05-20T00:00:00Z"}, "location": "Krakow", "trip_review_id": [201], "took_place": true },
+  { "_id": 3, "company_id": 2, "tickets_id": [301], "date": {"$date": "2024-06-10T00:00:00Z"}, "location": "Gdansk", "trip_review_id": [301], "took_place": true },
+  { "_id": 4, "company_id": 2, "tickets_id": [], "date": {"$date": "2024-07-15T00:00:00Z"}, "location": "Poznan", "trip_review_id": [], "took_place": false },
+  { "_id": 5, "company_id": 3, "tickets_id": [501, 502, 503, 504], "date": {"$date": "2024-08-25T00:00:00Z"}, "location": "Wroclaw", "trip_review_id": [], "took_place": false },
+  { "_id": 6, "company_id": 4, "tickets_id": [], "date": {"$date": "2024-09-14T00:00:00Z"}, "location": "Sopot", "trip_review_id": [], "took_place": false },
+  { "_id": 7, "company_id": 4, "tickets_id": [], "date": {"$date": "2024-09-15T00:00:00Z"}, "location": "Gdynia", "trip_review_id": [], "took_place": false },
+  { "_id": 8, "company_id": 5, "tickets_id": [], "date": {"$date": "2024-09-29T00:00:00Z"}, "location": "Katowice", "trip_review_id": [], "took_place": false }
 ])
 
 
 db.Tickets.insertMany([
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000010")}, "ticket_id": 501, "reserved_seat_no": 1, "last_name_person": "White" },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000011")}, "ticket_id": 101, "reserved_seat_no": 1, "last_name_person": "Doe" },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000012")}, "ticket_id": 102, "reserved_seat_no": 2, "last_name_person": "Doe" },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000013")}, "ticket_id": 201, "reserved_seat_no": 1, "last_name_person": "Smith" },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000014")}, "ticket_id": 502, "reserved_seat_no": 2, "last_name_person": "White" },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000015")}, "ticket_id": 503, "reserved_seat_no": 1, "last_name_person": "White" },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000016")}, "ticket_id": 401, "reserved_seat_no": 1, "last_name_person": "Brown" },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000017")}, "ticket_id": 504, "reserved_seat_no": 4, "last_name_person": "Doe" }
+  { "_id": 501, "trip_id": 5, "reserved_seat_no": 1, "ticket_status": 'P', "first_name": "Lisa", "last_name": "White" },
+  { "_id": 101, "trip_id": 1, "reserved_seat_no": 1, "ticket_status": 'P', "first_name": "John", "last_name": "Doe" },
+  { "_id": 102, "trip_id": 1, "reserved_seat_no": 2, "ticket_status": 'P', "first_name": "David", "last_name": "Brown" },
+  { "_id": 201, "trip_id": 2, "reserved_seat_no": 1, "ticket_status": 'P', "first_name": "Anna", "last_name": "Smith" },
+  { "_id": 502, "trip_id": 5, "reserved_seat_no": 2, "ticket_status": 'N', "first_name": "Lisa", "last_name": "White" },
+  { "_id": 503, "trip_id": 5, "reserved_seat_no": 1, "ticket_status": 'C', "first_name": "Mark", "last_name": "Taylor" },
+  { "_id": 301, "trip_id": 3, "reserved_seat_no": 1, "ticket_status": 'N', "first_name": "David", "last_name": "Brown" },
+  { "_id": 504, "trip_id": 5, "reserved_seat_no": 4, "ticket_status": 'C', "first_name": "John", "last_name": "Doe" }
 ])
 
 db.Reviews.insertMany([
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000020")}, "review_id": 101, "customer_id": 1, "trip_id": 1, "company_id": 1, "review_date": {"$date": "2023-03-01T00:00:00Z"}, "stars": 5, "review_description": "Excellent experience!" },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000021")}, "review_id": 102, "customer_id": 1, "trip_id": 1, "company_id": 1, "review_date": {"$date": "2023-03-02T00:00:00Z"}, "stars": 4, "review_description": "Very good trip, well organized." },
-  { "_id": {"_id": ObjectId("5f8d0a55fc13ae03c3000022")}, "review_id": 201, "customer_id": 2, "trip_id": 2, "company_id": 1, "review_date": {"$date": "2023-04-01T00:00:00Z"}, "stars": 3, "review_description": "Decent, but could be better." },
+  { "_id": 101, "customer_id": 1, "trip_id": 1, "company_id": 1, "review_date": {"$date": "2023-03-01T00:00:00Z"}, "stars": 5, "review_description": "Excellent experience!" },
+  { "_id": 102, "customer_id": 3, "trip_id": 1, "company_id": 1, "review_date": {"$date": "2023-03-02T00:00:00Z"}, "stars": 4, "review_description": "Very good trip, well organized." },
+  { "_id": 201, "customer_id": 2, "trip_id": 2, "company_id": 1, "review_date": {"$date": "2023-04-01T00:00:00Z"}, "stars": 3, "review_description": "Decent, but could be better." },
+  { "_id": 301, "customer_id": 3, "trip_id": 3, "company_id": 2, "review_date": {"$date": "2023-04-26T00:00:00Z"}, "stars": 5, "review_description": "It was super!" },
 ])
 
 ```
+
+Kolekcje po wypełnieniu danymi:
+
+- Companies
+
+![](img/60 - companies.png)
+
+- Customers
+
+![](img/61 - customers.png)
+
+- Reviews
+
+![](img/62 - reviews.png)
+
+- Tickets
+
+![](img/63 - tickets.png)
+
+- Trips
+
+![](img/64 - trips.png)
+
+
+#### c)  Analiza wad/zalet danego podejścia na konkretnych przykładach
+
+- Wyświetlenie komunikatów wszystkich reviews, mających ocenę 5
+
+Skoro mamy osobną kolekcję Reviews, nie będzie to stanowiło problemu, ponieważ do wykonania tego zadania wystarczy dość proste polecenie:
+
+```js
+db.Reviews.find({stars: 5}, {_id: 0, trip_id: 1, review_description: 1})
+```
+
+Wynik danego zypytania:
+
+![](img/70.png)
+
+
 
 
 ### Podejście dokumentowe
@@ -384,6 +426,143 @@ W takim podejściu uporządkujemy dane w taki sposób, że każda kolekcja przed
     - W szczególnych przypadkach najlepszych model danych (np. w przypadku wielokrotnego zagnieżdżenia dokumentów w zagnieżdżnych dokumentach)
     - Brak zagwarantowanej spójności danych
 
+W takim podejściu przekształciliśmy poprzednią strukturę tabelaryczną, używając dokumentów zagnieżdżonych. Z 5 kolekcji (Customers, Trips, Reviews, Companies, Tickets) zostało tylko 2 (Customers i Trips). Informacje z kolekcji "Companies" zostały przeniesione do "Trips", informacje o ticketach i reviews każdego z kilentów zostały przeniesione do dwóch tablic dokumentów zagnieżdżonych w kolekcji "Customers". Wynika to z tego, że te dane prawie nigdy nie są zmieniane (chyba że status Ticketu, ale to nawet łatwiej zmieniać w dokumencie danego klienta). W taki sposób zmniejszyła się ilość danych, natomias trochę utrudnił się cały schemat.
+
+#### b)  Utworzenie kolekcji i wypełnienie kolekcji przykładowymi danymi
+
+Przykładowa struktura bazy danych wygląda następująco:
+
+```js
+Companies
+{
+	"_id": Number,
+	"organized_trips_id": [Number], 
+	"company_name": String
+}
+
+Customers
+{
+	"_id": Number,
+	"owned_tickets_id": [Number],  
+	"customer_review_id": [Number],
+	"first_name": String,
+	"last_name": String, 
+}
+
+Trips 
+{
+	"_id": Number,  
+	"company_id": [Number], 
+	"tickets_id": [Number], 
+	"date": Date, 
+	"location": String, 
+	"trip_review_id": [Number],
+    "took_place": Boolean
+}
+
+Tickets 
+{
+	"_id": Number,  
+	"trip_id": [Number], 
+	"reserved_seat_no": Number, 
+    "ticket_status": String, 
+    "first_name": String,
+	"last_name": String 
+}
+
+Reviews
+{
+	"_id": Number, 
+	"customer_id": Number,
+	"trip_id": Number, 
+	"company_id": Number, 
+	"review_date": Date, 
+	"stars": Number, 
+	"review_description": String
+}
+```
+
+Stworzenie bazy danych według wyżej przedstawionego pomysłu:
+
+```js
+use doc_trip_database
+
+db.createCollection("Customers")
+db.createCollection("Trips")
+```
+
+Stworzenie rożnego rodzaju danych dla przykładowej bazy danych:
+    
+Kilka przydatnych informacji:
+    
+- took_place ustawione na True w kolekcji Trips oznacza, że wycieczka się już odbyła,
+- review_id oraz ticket_id to liczby 3-cyfrowe zaczynające się od trip_id. 3 bilety dla np. trip_id=1 to: 101,102,103,
+- seats_no to liczby odpowiadające numerom ticketów: np dla ticketa 102, seats_no to 2 itd
+- ticket_status to jeden symbol spośród 'N', 'P' i 'C', oznaczających kolejno "New", "Paid" i "Canceled"
+
+```js
+db.Customers.insertMany([
+  { "customer_id": 1,
+  "owned_tickets": [{ "ticket_id": 101, "trip_id": 1, "reserved_seat_no": 1, "ticket_status": 'P' },
+  { "ticket_id": 102, "trip_id": 1, "reserved_seat_no": 2, "ticket_status": 'P' },
+  { "ticket_id": 504, "trip_id": 5, "reserved_seat_no": 4, "ticket_status": 'C' }],
+  "customer_reviews": [{ "review_id": 101, "trip_id": 1, "review_date": {"$date": "2023-03-01T00:00:00Z"}, "stars": 5, "review_description": "Excellent experience!" },
+                       { "review_id": 102, "trip_id": 1, "review_date": {"$date": "2023-03-02T00:00:00Z"}, "stars": 4, "review_description": "Very good trip, well organized." },
+  ],
+  "first_name": "John", "last_name": "Doe" },
+
+  { "customer_id": 2,
+  "owned_tickets": [{ "ticket_id": 201, "trip_id": 2, "reserved_seat_no": 1, "ticket_status": 'P' }],
+  "customer_reviews": [{ "review_id": 201, "trip_id": 2, "review_date": {"$date": "2023-04-01T00:00:00Z"}, "stars": 3, "review_description": "Decent, but could be better." },
+  ],
+  "first_name": "Anna", "last_name": "Smith" },
+
+  { "customer_id": 3,
+  "owned_tickets": [{ "ticket_id": 301, "trip_id": 3, "reserved_seat_no": 1, "ticket_status": 'N' }],
+  "customer_reviews": [{ "review_id": 301, "trip_id": 3, "review_date": {"$date": "2023-04-26T00:00:00Z"}, "stars": 5, "review_description": "It was super!" },
+], "first_name": "David", "last_name": "Brown" },
+
+  { "customer_id": 4,
+  "owned_tickets": [{ "ticket_id": 501, "trip_id": 5, "reserved_seat_no": 1, "ticket_status": 'P' }, { "ticket_id": 502, "trip_id": 5, "reserved_seat_no": 2, "ticket_status": 'N' },
+  { "ticket_id": 503, "trip_id": 5, "reserved_seat_no": 1, "ticket_status": 'C' }],
+  "customer_reviews": [], "first_name": "Lisa", "last_name": "White" },
+
+  { "customer_id": 5,
+  "owned_tickets": [], "customer_reviews": [], "first_name": "Mark", "last_name": "Taylor" }
+])
+
+db.Trips.insertMany([
+  { "trip_id": 1, "company_name": "Adventure Works", "tickets_id": [101, 102, 103], "date": {"$date": "2024-04-15T00:00:00Z"}, "location": "Warsaw", "trip_review_id": [100, 101], "took_place": true },
+  { "trip_id": 2, "company_name": "Adventure Works", "tickets_id": [201, 202], "date": {"$date": "2024-05-20T00:00:00Z"}, "location": "Krakow", "trip_review_id": [201, 202], "took_place": true },
+  { "trip_id": 3, "company_name": "Travel Corp", "tickets_id": [301], "date": {"$date": "2024-06-10T00:00:00Z"}, "location": "Gdansk", "trip_review_id": [301], "took_place": true },
+  { "trip_id": 4, "company_name": "Travel Corp", "tickets_id": [401], "date": {"$date": "2024-07-15T00:00:00Z"}, "location": "Poznan", "trip_review_id": [], "took_place": false },
+  { "trip_id": 5, "company_name": "Holiday Makers", "tickets_id": [], "date": {"$date": "2024-08-25T00:00:00Z"}, "location": "Wroclaw", "trip_review_id": [], "took_place": false },
+  { "trip_id": 6, "company_name": "Globe Trotters", "tickets_id": [], "date": {"$date": "2024-09-14T00:00:00Z"}, "location": "Sopot", "trip_review_id": [], "took_place": false },
+  { "trip_id": 7, "company_name": "Globe Trotters", "tickets_id": [], "date": {"$date": "2024-09-15T00:00:00Z"}, "location": "Gdynia", "trip_review_id": [], "took_place": false },
+  { "trip_id": 8, "company_name": "Pathfinders", "tickets_id": [], "date": {"$date": "2024-09-29T00:00:00Z"}, "location": "Katowice", "trip_review_id": [], "took_place": false }
+])
+```
+
+Kolekcje po wypełnieniu danymi:
+
+- Customers
+
+![](img/65 - customers.png)
+
+- Trips
+
+![](img/66 - trips.png)
+
+#### c)  Analiza wad/zalet danego podejścia na konkretnych przykładach
+
+- Pierwsze
+
+Wynik danego zypytania:
+
+Kod:
+
+```js
+```
 
 ---
 
