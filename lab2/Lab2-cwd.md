@@ -76,7 +76,8 @@ db.tip.aggregate([
 
 Wynik zapytania:
 
-![](img/tipy.png)
+Nie udało nam się zarejestrować wyniku zapytania z powodu zbyt długiego czasu wykonywania podzapytania
+
 
 3. Recenzje mogą być oceniane przez innych użytkowników jako `cool`, `funny` lub `useful` (kolekcja `review`, pole `votes`, jedna recenzja może mieć kilka głosów w każdej kategorii).  Napisz zapytanie, które zwraca dla każdej z tych kategorii, ile sumarycznie recenzji zostało oznaczonych przez te kategorie (np. recenzja ma kategorię `funny` jeśli co najmniej jedna osoba zagłosowała w ten sposób na daną recenzję).
 
@@ -368,7 +369,7 @@ db.Reviews.insertMany([
 
 #### a)  Analiza danego wariantu
 
-W takim podejściu uporządkujemy dane w taki sposób, że każda kolekcja przedstawia pewien rodzaj encji, ale nie potrzebujemy przedstawiać wszystkie encje w osobnych kolekcjach. Encje mogą być powiązane między sobą przez referencje (w przypadku kilku dokumentów w różnych kolekcjach) albo za pomocą dokumentów zagnieżdżonych.
+W takim podejściu uporządkujemy dane w taki sposób, że każda kolekcja przedstawia pewien rodzaj encji, ale nie potrzebujemy przedstawiać wszystkich encji w osobnych kolekcjach. Encje mogą być powiązane między sobą przez referencje (w przypadku kilku dokumentów w różnych kolekcjach) albo za pomocą dokumentów zagnieżdżonych.
 
 - Zalety
     - Brak konieczności używania kosztownych operacji do łączenia kilku dokumentów różnych kolekcji
@@ -380,7 +381,7 @@ W takim podejściu uporządkujemy dane w taki sposób, że każda kolekcja przed
     - Redundacja danych
     - Utrudnienia modyfikacji: w konsekwencji redundacji danych potrzebujemy modyfikować te same dane wielokrotnie w różnych miejscah
     - Konieczność użycia bardziej złożonych zapytań w przypadku, gdy potrzebujemy dostać się do informacji zawartych w dokumentach zagnieżdżonych
-    - W szczególnych przypadkach nieprzejżysty model danych (np. w przypadku wielokrotnego zagnieżdżenia dokumentów w zagnieżdżnych dokumentach)
+    - W szczególnych przypadkach najlepszych model danych (np. w przypadku wielokrotnego zagnieżdżenia dokumentów w zagnieżdżnych dokumentach)
     - Brak zagwarantowanej spójności danych
 
 
