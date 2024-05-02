@@ -336,7 +336,7 @@ db.Customers.insertMany([
 ])
 
 db.Trips.insertMany([
-  { "_id": 1, "company_id": 1, "tickets_id": [101, 102], "date": {"$date": "2024-04-15T00:00:00Z"}, "location": "Warsaw", "trip_review_id": [100, 101], "took_place": true },
+  { "_id": 1, "company_id": 1, "tickets_id": [101, 102], "date": {"$date": "2024-04-15T00:00:00Z"}, "location": "Warsaw", "trip_review_id": [101, 102], "took_place": true },
   { "_id": 2, "company_id": 1, "tickets_id": [201], "date": {"$date": "2024-05-20T00:00:00Z"}, "location": "Krakow", "trip_review_id": [201], "took_place": true },
   { "_id": 3, "company_id": 2, "tickets_id": [301], "date": {"$date": "2024-06-10T00:00:00Z"}, "location": "Gdansk", "trip_review_id": [301], "took_place": true },
   { "_id": 4, "company_id": 2, "tickets_id": [], "date": {"$date": "2024-07-15T00:00:00Z"}, "location": "Poznan", "trip_review_id": [], "took_place": false },
@@ -392,20 +392,45 @@ Kolekcje po wypełnieniu danymi:
 
 #### c)  Analiza wad/zalet danego podejścia na konkretnych przykładach
 
-- Wyświetlenie komunikatów wszystkich reviews, mających ocenę 5
+- Wyświetlenie wszystkich ocen z `reviews` wraz z `company_name` dla każdej wycieczki `trip`, która już się odbyła
 
-Skoro mamy osobną kolekcję Reviews, nie będzie to stanowiło problemu, ponieważ do wykonania tego zadania wystarczy dość proste polecenie:
+Przez to, że mamy umieszczone te dane w kilku różnych kolekcjach, zapytanie będzie składać się z kilku operatorów, a czas wykonania będzie nie najlepszy, ponieważ potrzebujemy łączyć kilka tabel. W drugim podejściu będzie pokazane alternatywne wykonanie tego zypatania.
 
 ```js
-db.Reviews.find({stars: 5}, {_id: 0, trip_id: 1, review_description: 1})
+db.Trips.aggregate(
+{$match: {took_place: true}},
+
+{$lookup: {from: "Companies",
+           localField: "company_id",
+           foreignField: "_id",
+           as: "Company"}},
+
+{$unwind: "$Company"},
+
+{$lookup: {from: "Reviews",
+           localField: "trip_review_id",
+           foreignField: "_id",
+           as: "Review"}},
+
+{$project: {"company_name" : "$Company.company_name", location: 1, "trip_reviews" : "$Review.stars"}}
+)
 ```
 
 Wynik danego zypytania:
 
-![](img/70.png)
+![](img/71.png)
 
+- Wyświetlenie wszystkich biletów `tickets`, które mają status "Paid" albo "New"
 
+W tym przypadku w łatwy sposób można skorzystać z kolekcji Tickets, która zawiera interesujące nas informacje (wystarczy dodać prosty warunek). Natomiast w strukturze z zagnieżdżonymi dokumentami mielibyśmy odwoływaś się do nich wewnątrz innych kolekcji (będzie pokazane niżej).
 
+```js
+db.Tickets.find({$or : [{ticket_status: 'P'}, {ticket_status: 'N'}]})
+```
+
+Wynik danego zypytania:
+
+![](img/72.png)
 
 ### Podejście dokumentowe
 
@@ -433,18 +458,25 @@ W takim podejściu przekształciliśmy poprzednią strukturę tabelaryczną, uż
 Przykładowa struktura bazy danych wygląda następująco:
 
 ```js
-Companies
-{
-	"_id": Number,
-	"organized_trips_id": [Number], 
-	"company_name": String
-}
-
 Customers
 {
 	"_id": Number,
-	"owned_tickets_id": [Number],  
-	"customer_review_id": [Number],
+	"owned_tickets": [
+            {
+                "_id": Number,  
+                "reserved_seat_no": Number, 
+                "ticket_status": String
+            }
+    ],  
+	"customer_reviews": [
+            {
+                "_id": Number, 
+                "trip_id": Number, 
+                "review_date": Date, 
+                "stars": Number, 
+                "review_description": String
+            }
+    ],
 	"first_name": String,
 	"last_name": String, 
 }
@@ -452,34 +484,28 @@ Customers
 Trips 
 {
 	"_id": Number,  
-	"company_id": [Number], 
-	"tickets_id": [Number], 
+	"company_name": String, 
+	"tickets": [
+            {
+                "_id": Number,  
+                "reserved_seat_no": Number, 
+                "ticket_status": String
+            }
+    ], 
 	"date": Date, 
 	"location": String, 
-	"trip_review_id": [Number],
+	"trip_reviews": [
+            {
+                "_id": Number, 
+                "customer_id": Number,
+                "review_date": Date, 
+                "stars": Number, 
+                "review_description": String
+            }
+    ],
     "took_place": Boolean
 }
 
-Tickets 
-{
-	"_id": Number,  
-	"trip_id": [Number], 
-	"reserved_seat_no": Number, 
-    "ticket_status": String, 
-    "first_name": String,
-	"last_name": String 
-}
-
-Reviews
-{
-	"_id": Number, 
-	"customer_id": Number,
-	"trip_id": Number, 
-	"company_id": Number, 
-	"review_date": Date, 
-	"stars": Number, 
-	"review_description": String
-}
 ```
 
 Stworzenie bazy danych według wyżej przedstawionego pomysłu:
@@ -502,44 +528,89 @@ Kilka przydatnych informacji:
 
 ```js
 db.Customers.insertMany([
-  { "customer_id": 1,
-  "owned_tickets": [{ "ticket_id": 101, "trip_id": 1, "reserved_seat_no": 1, "ticket_status": 'P' },
-  { "ticket_id": 102, "trip_id": 1, "reserved_seat_no": 2, "ticket_status": 'P' },
-  { "ticket_id": 504, "trip_id": 5, "reserved_seat_no": 4, "ticket_status": 'C' }],
-  "customer_reviews": [{ "review_id": 101, "trip_id": 1, "review_date": {"$date": "2023-03-01T00:00:00Z"}, "stars": 5, "review_description": "Excellent experience!" },
-                       { "review_id": 102, "trip_id": 1, "review_date": {"$date": "2023-03-02T00:00:00Z"}, "stars": 4, "review_description": "Very good trip, well organized." },
-  ],
-  "first_name": "John", "last_name": "Doe" },
+  { "_id": 1, "owned_tickets": [
 
-  { "customer_id": 2,
-  "owned_tickets": [{ "ticket_id": 201, "trip_id": 2, "reserved_seat_no": 1, "ticket_status": 'P' }],
-  "customer_reviews": [{ "review_id": 201, "trip_id": 2, "review_date": {"$date": "2023-04-01T00:00:00Z"}, "stars": 3, "review_description": "Decent, but could be better." },
-  ],
-  "first_name": "Anna", "last_name": "Smith" },
+  { "_id": 101, "trip_id": 1, "reserved_seat_no": 1, "ticket_status": 'P'},
+  { "_id": 504, "trip_id": 5, "reserved_seat_no": 4, "ticket_status": 'C'}
 
-  { "customer_id": 3,
-  "owned_tickets": [{ "ticket_id": 301, "trip_id": 3, "reserved_seat_no": 1, "ticket_status": 'N' }],
-  "customer_reviews": [{ "review_id": 301, "trip_id": 3, "review_date": {"$date": "2023-04-26T00:00:00Z"}, "stars": 5, "review_description": "It was super!" },
-], "first_name": "David", "last_name": "Brown" },
+  ], "customer_reviews": [
+        { "review_id": 101, "trip_id": 1, "review_date": {"$date": "2023-03-01T00:00:00Z"}, "stars": 5, "review_description": "Excellent experience!" }
+  ], "first_name": "John", "last_name": "Doe" },
 
-  { "customer_id": 4,
-  "owned_tickets": [{ "ticket_id": 501, "trip_id": 5, "reserved_seat_no": 1, "ticket_status": 'P' }, { "ticket_id": 502, "trip_id": 5, "reserved_seat_no": 2, "ticket_status": 'N' },
-  { "ticket_id": 503, "trip_id": 5, "reserved_seat_no": 1, "ticket_status": 'C' }],
-  "customer_reviews": [], "first_name": "Lisa", "last_name": "White" },
+  { "_id": 2, "owned_tickets": [
 
-  { "customer_id": 5,
-  "owned_tickets": [], "customer_reviews": [], "first_name": "Mark", "last_name": "Taylor" }
+  { "_id": 201, "trip_id": 2, "reserved_seat_no": 1, "ticket_status": 'P'}
+
+  ], "customer_reviews": [
+
+  { "review_id": 201, "customer_id": 2, "trip_id": 2, "review_date": {"$date": "2023-04-01T00:00:00Z"}, "stars": 3, "review_description": "Decent, but could be better." }
+
+  ], "first_name": "Anna", "last_name": "Smith" },
+  { "_id": 3, "owned_tickets": [
+
+  { "_id": 102, "trip_id": 1, "reserved_seat_no": 2, "ticket_status": 'P'},
+  { "_id": 301, "trip_id": 3, "reserved_seat_no": 1, "ticket_status": 'N'}
+
+  ], "customer_reviews": [
+
+  { "review_id": 102, "trip_id": 1, "review_date": {"$date": "2023-03-02T00:00:00Z"}, "stars": 4, "review_description": "Very good trip, well organized." },
+  { "review_id": 301, "trip_id": 3, "review_date": {"$date": "2023-04-26T00:00:00Z"}, "stars": 5, "review_description": "It was super!" }
+
+
+  ], "first_name": "David", "last_name": "Brown" },
+  { "_id": 4, "owned_tickets": [
+
+   { "_id": 501, "trip_id": 5, "reserved_seat_no": 1, "ticket_status": 'P'},
+   { "_id": 502, "trip_id": 5, "reserved_seat_no": 2, "ticket_status": 'N'}
+
+  ], "customer_reviews": [], "first_name": "Lisa", "last_name": "White" },
+  { "_id": 5, "owned_tickets": [{ "_id": 503, "trip_id": 5, "reserved_seat_no": 1, "ticket_status": 'C'}], "customer_reviews": [], "first_name": "Mark", "last_name": "Taylor" }
 ])
 
 db.Trips.insertMany([
-  { "trip_id": 1, "company_name": "Adventure Works", "tickets_id": [101, 102, 103], "date": {"$date": "2024-04-15T00:00:00Z"}, "location": "Warsaw", "trip_review_id": [100, 101], "took_place": true },
-  { "trip_id": 2, "company_name": "Adventure Works", "tickets_id": [201, 202], "date": {"$date": "2024-05-20T00:00:00Z"}, "location": "Krakow", "trip_review_id": [201, 202], "took_place": true },
-  { "trip_id": 3, "company_name": "Travel Corp", "tickets_id": [301], "date": {"$date": "2024-06-10T00:00:00Z"}, "location": "Gdansk", "trip_review_id": [301], "took_place": true },
-  { "trip_id": 4, "company_name": "Travel Corp", "tickets_id": [401], "date": {"$date": "2024-07-15T00:00:00Z"}, "location": "Poznan", "trip_review_id": [], "took_place": false },
-  { "trip_id": 5, "company_name": "Holiday Makers", "tickets_id": [], "date": {"$date": "2024-08-25T00:00:00Z"}, "location": "Wroclaw", "trip_review_id": [], "took_place": false },
-  { "trip_id": 6, "company_name": "Globe Trotters", "tickets_id": [], "date": {"$date": "2024-09-14T00:00:00Z"}, "location": "Sopot", "trip_review_id": [], "took_place": false },
-  { "trip_id": 7, "company_name": "Globe Trotters", "tickets_id": [], "date": {"$date": "2024-09-15T00:00:00Z"}, "location": "Gdynia", "trip_review_id": [], "took_place": false },
-  { "trip_id": 8, "company_name": "Pathfinders", "tickets_id": [], "date": {"$date": "2024-09-29T00:00:00Z"}, "location": "Katowice", "trip_review_id": [], "took_place": false }
+  { "_id": 1, "company_name": "Adventure Works", "tickets": [
+
+  { "_id": 101, "customer_id": 1, "reserved_seat_no": 1, "ticket_status": 'P'},
+  { "_id": 102, "customer_id": 3, "reserved_seat_no": 2, "ticket_status": 'P'}
+
+  ], "date": {"$date": "2024-04-15T00:00:00Z"}, "location": "Warsaw", "trip_reviews": [
+
+  { "review_id": 101, "customer_id": 1, "review_date": {"$date": "2023-03-01T00:00:00Z"}, "stars": 5, "review_description": "Excellent experience!" },
+  { "review_id": 102, "customer_id": 3, "review_date": {"$date": "2023-03-02T00:00:00Z"}, "stars": 4, "review_description": "Very good trip, well organized." }
+
+
+  ], "took_place": true },
+  { "_id": 2, "company_name": "Adventure Works", "tickets": [
+
+  { "_id": 201, "customer_id": 2, "trip_id": 2, "reserved_seat_no": 1, "ticket_status": 'P'}
+
+  ], "date": {"$date": "2024-05-20T00:00:00Z"}, "location": "Krakow", "trip_reviews": [
+
+  { "review_id": 201, "customer_id": 2, "review_date": {"$date": "2023-04-01T00:00:00Z"}, "stars": 3, "review_description": "Decent, but could be better." }
+
+
+  ], "took_place": true },
+  { "_id": 3, "company_name": "Travel Corp", "tickets": [
+
+  { "_id": 301, "customer_id": 3, "reserved_seat_no": 1, "ticket_status": 'N'}
+
+  ], "date": {"$date": "2024-06-10T00:00:00Z"}, "location": "Gdansk", "trip_reviews": [
+
+  { "review_id": 301, "customer_id": 3, "trip_id": 3, "review_date": {"$date": "2023-04-26T00:00:00Z"}, "stars": 5, "review_description": "It was super!" }
+
+  ], "took_place": true },
+  { "_id": 4, "company_name": "Travel Corp", "tickets": [], "date": {"$date": "2024-07-15T00:00:00Z"}, "location": "Poznan", "trip_reviews": [], "took_place": false },
+  { "_id": 5, "company_name": "Holiday Makers", "tickets": [
+
+  { "_id": 501, "customer_id": 4, "reserved_seat_no": 1, "ticket_status": 'P'},
+  { "_id": 502, "customer_id": 4, "reserved_seat_no": 2, "ticket_status": 'N'},
+  { "_id": 503, "customer_id": 5, "reserved_seat_no": 1, "ticket_status": 'C'},
+  { "_id": 504, "customer_id": 1, "reserved_seat_no": 4, "ticket_status": 'C'}
+
+  ], "date": {"$date": "2024-08-25T00:00:00Z"}, "location": "Wroclaw", "trip_reviews": [], "took_place": false },
+  { "_id": 6, "company_name": "Globe Trotters", "tickets": [], "date": {"$date": "2024-09-14T00:00:00Z"}, "location": "Sopot", "trip_reviews": [], "took_place": false },
+  { "_id": 7, "company_name": "Globe Trotters", "tickets": [], "date": {"$date": "2024-09-15T00:00:00Z"}, "location": "Gdynia", "trip_reviews": [], "took_place": false },
+  { "_id": 8, "company_name": "Pathfinders", "tickets": [], "date": {"$date": "2024-09-29T00:00:00Z"}, "location": "Katowice", "trip_reviews": [], "took_place": false }
 ])
 ```
 
@@ -555,14 +626,37 @@ Kolekcje po wypełnieniu danymi:
 
 #### c)  Analiza wad/zalet danego podejścia na konkretnych przykładach
 
-- Pierwsze
+- Wyświetlenie wszystkich ocen z `reviews` wraz z `company_name` dla każdej wycieczki `trip`, która już się odbyła
+
+Dzięki temu, że mamy umieszczone te dane w jednym miejscu, zapytanie będzie dość proste, a czas wykonania polecenia krótki, ponieważ nie potrzebujemy łączyć kilku tabel, jak to było pokazane wyżej w przypadku innego podejścia
+
+```js
+db.Trips.aggregate(
+    {$match: {"took_place": true}},
+    {$project: {company_name: 1, location: 1, "trip_reviews.stars": 1}}
+)
+```
 
 Wynik danego zypytania:
 
-Kod:
+![](img/70.png)
+
+- Wyświetlenie wszystkich biletów `tickets`, które mają status "Paid" albo "New"
+
+W tym przypadku Customer agreguje Tickets, więc potrzebujemy bardziej skomplikowanych zapytań aby dostać się do informacji zamieszczonych w dokumentach zagnieżdżonych. Natomiast w strukturze tablicowej, jak było pokazane wyżej, takie zapytanie jest bardziej przejrzyste, ponieważ wszystkie dane są na jednym poziome w ramach jednej kolekcji.
 
 ```js
+db.Customers.aggregate(
+    {$unwind: "$owned_tickets"},
+    {$match: {$or: [{"owned_tickets.ticket_status": 'P'}, {"owned_tickets.ticket_status": 'N'}]}},
+    {$project: {_id: 0, _id: "$owned_tickets._id", first_name: 1, last_name: 1, reserved_seat_no : "$owned_tickets.reserved_seat_no",
+    ticket_status: "$owned_tickets.ticket_status", trip_id: "$owned_tickets.trip_id"}}
+)
 ```
+
+Wynik danego zypytania:
+
+![](img/73.png)
 
 ---
 
