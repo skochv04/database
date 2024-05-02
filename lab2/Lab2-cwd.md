@@ -61,7 +61,16 @@ Wynik zapytania:
 db.tip.aggregate([
     {$match: {date: {$gte: "2012-01-01", $lte: "2012-12-31"}}},
     {$group: {_id: "$business_id", totalTips: {$sum: 1}}},
-    {$sort: {totalTips: -1}}
+    {$lookup: {
+        from: "business",
+        localField: "_id",
+        foreignField: "business_id",
+        as: "business-info"
+        }
+    },
+    {$unwind: "$business-info"},
+    {$sort: {totalTips: -1}},
+    {$project: {_id: 0, name: "$business_info.name", totalTips: 1}}
                     ])
 ```
 
