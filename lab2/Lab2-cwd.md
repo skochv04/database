@@ -432,6 +432,40 @@ Wynik danego zypytania:
 
 ![](img/72.png)
 
+- Dodanie nowego `review`
+
+W podejściu tabelarycznym potrzebujemy tylko 1 raz wstawić dokument, zawierający informacje o danym review, dodając jego ID do list `reviews` w kolekcjach `trips` oraz `customers`. Dzięki braku redundacji takich złożonych struktur danych, wstawione dane będa zajmowały mniej miejsca, niż w przypadku podejścia dokumentowego, ponieważ w tym podejściu będziemy potrzebowali zrobić kilka razy więcej insertów i odpowiednio wykorzystać kilka razy więcej pamięci do przechowywania redundantych danych, natomiast będą one wygodniejsze w wykorzystaniu.
+
+Przed wstawieniem ustawiliśmy status wydarzenia na odbyty.
+
+```js
+db.Trips.updateOne(
+    { _id: 5 },
+    { $set: { took_place: true } }
+)
+```
+
+```js
+db.Reviews.insertOne({ "_id": 501, "customer_id": 1, "trip_id": 5, "company_id": 1, "review_date": {"$date": "2024-05-03T00:00:00Z"}, "stars": 4.5, "review_description": "Great trip but it seems to be too expensive" },)
+db.Customers.updateOne({"_id" : 1}, {$push: {customer_review_id: 501}})
+db.Trips.updateOne({"_id" : 5}, {$push: {trip_review_id: 501}})
+```
+
+Wynik danego zypytania:
+
+Reviews:
+
+![](img/74.png)
+
+Customers:
+
+![](img/75.png)
+
+Trips:
+
+![](img/76.png)
+
+
 ### Podejście dokumentowe
 
 #### a)  Analiza danego wariantu
@@ -657,6 +691,34 @@ db.Customers.aggregate(
 Wynik danego zypytania:
 
 ![](img/73.png)
+
+- Dodanie nowego `review`
+
+W podejściu dokumentowym potrzebujemy kilka razy (zależnie od zamodelowanej struktury bazy danych) wstawić dokument, zawierający informacje o danym review, do różnych kolekcji. W porównywaniu do sposoby tabelarycznego, tutaj będziemy potrzebowali zrobić kilka razy więcej insertów i odpowiednio wykorzystać kilka razy więcej pamięci do przechowywania redundantych danych, natomiast będą one wygodniejsze w wykorzystaniu.
+
+Przed wstawieniem ustawiliśmy status wydarzenia na odbyty.
+
+```js
+db.Trips.updateOne(
+    { _id: 5 },
+    { $set: { took_place: true } }
+)
+```
+
+```js
+db.Customers.updateOne({"_id" : 1}, {$push: {customer_reviews: { "_id": 501, "trip_id": 5, "review_date": {"$date": "2024-05-03T00:00:00Z"}, "stars": 4.5, "review_description": "Great trip but it seems to be too expensive" }}})
+db.Trips.updateOne({"_id" : 5}, {$push: {trip_reviews: { "_id": 501, "customer_id": 1, "review_date": {"$date": "2024-05-03T00:00:00Z"}, "stars": 4.5, "review_description": "Great trip but it seems to be too expensive" }}})
+```
+
+Wynik danego zypytania:
+
+Customers:
+
+![](img/77.png)
+
+Trips:
+
+![](img/78.png)
 
 ---
 
