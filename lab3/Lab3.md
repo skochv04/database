@@ -10,7 +10,7 @@
 
 --- 
 
-# Zadanie 1 - wprowadzenie
+# Wproradzenie
 
 Zostały dodane podstawowe klasy Product, ProdContext oraz Program, baza danych MyProductDatabase.
 
@@ -75,7 +75,7 @@ foreach (var pName in query)
 
 --- 
 
-# Zadanie 2 - wprowadzenie pojęcia Dostawcy
+# Zadanie a - wprowadzenie pojęcia Dostawcy
 
 Została dodana klasa Supplier oraz zaktualizowana odpowiednio klasa Product, żeby mieć połączenie z klasą Supplier.
 
@@ -302,7 +302,7 @@ class Program
 
 --- 
 
-# Zadanie 3 - odwrócenie relacji Supplier -> Product
+# Zadanie b - odwrócenie relacji Supplier -> Product
 
 - Z klasy "Product" został usunięty atrybut "Supplier" zgodnie ze schematem. 
 - W klasie "Supplier" dodano kolekcję produktów, dostarczanych przez danego dostawcę.
@@ -327,7 +327,7 @@ Sprawdżmy trwałość zmian za pomocą DataGrip. Tabela Product po dodaniu prod
 
 ![](img/9.png)
 
-Sprawdżmy trwałość zmian za pomocą DataGrip. Tabela Product po wprowadzeniu zmiany dostawcy:
+Tabela Product po wprowadzeniu zmiany dostawcy:
 
 ![](img/10.png)
 
@@ -413,7 +413,7 @@ static void Main()
 
 --- 
 
-# Zadanie 4 - dwustronna relacja Supplier <----> Product
+# Zadanie c - dwustronna relacja Supplier <----> Product
 
 - Do klasy "Product" został dodany atrybut, określający Dostawcę danego produktu (tak jak w zad. 2).
 - Klasa "Supplier" pozostała bez zmian względem implementacji poprzedniego zadania.
@@ -494,8 +494,13 @@ static void Main()
     }
 ```
 
+--- 
 
-# Zadanie 6 (e) - Table-Per-Hierarchy:
+# Zadanie d - modelowanie relacji wiele-do-wielu
+
+--- 
+
+# Zadanie e - Table-Per-Hierarchy:
 
 Zgodnie ze strategią Table-Per-Hierarchy, tworzymy jedną tabelę Company, która przechowuje wszystkie typy klas
 
@@ -760,9 +765,11 @@ Diagram tabeli Companies:
 
 
 Jak widać jest to zwykła tabela przechowująca różne typy, rozróżniająca je za 
-pomocą pola Discriminator
+pomocą pola Discriminator.
 
-# Zadanie 7 (f) - Table-Per-Type:
+--- 
+
+# Zadanie f - Table-Per-Type:
 
 Implementacja tego zadania wygląda identycznie. Zmianie uległy jedynie dwie klasy: Customer oraz Supplier do 
 których dodalismy taką adnotacje przez nazwą klasy: [Table("Nazwa_KLasy")] 
@@ -832,7 +839,9 @@ Schemat bazy danych:
 
 ![](img/img-zad6/diagram.png)
 
-# Zadanie 8 (g) - Podsumowanie:
+---
+
+# Zadanie g - Podsumowanie:
 
 
 ### Opis strategi dziedziczenia: Table-Per-Hierarchy:
