@@ -188,8 +188,8 @@ class Program
     {
         foreach (InvoiceItem item in basketItems)
         {
-            prodContext.Products.Find(item.ProductID);
-            Console.WriteLine(item);
+            var product = prodContext.Products.FirstOrDefault(prod => prod.ProductID == item.ProductID);
+            Console.WriteLine($"Product #{product.ProductID} {product.ProductName}: {item.Quantity} szt.");
         }
         if (basketItems.Count() == 0)
         {

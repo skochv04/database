@@ -498,6 +498,10 @@ static void Main()
 
 # Zadanie d - modelowanie relacji wiele-do-wielu
 
+Schemat zmienionej bazy danych, wygenerowany przez DataGrip:
+
+![](img/60.png)
+
 --- 
 
 # Zadanie e - Table-Per-Hierarchy:
