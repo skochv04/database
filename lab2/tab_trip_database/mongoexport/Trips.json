@@ -1,0 +1,8 @@
+{"_id":1,"company_id":1,"tickets_id":[101,102],"date":{"$date":"2024-04-15T00:00:00Z"},"location":"Warsaw","trip_review_id":[101,102],"took_place":true}
+{"_id":2,"company_id":1,"tickets_id":[201],"date":{"$date":"2024-05-20T00:00:00Z"},"location":"Krakow","trip_review_id":[201],"took_place":true}
+{"_id":3,"company_id":2,"tickets_id":[301],"date":{"$date":"2024-06-10T00:00:00Z"},"location":"Gdansk","trip_review_id":[301],"took_place":true}
+{"_id":4,"company_id":2,"tickets_id":[],"date":{"$date":"2024-07-15T00:00:00Z"},"location":"Poznan","trip_review_id":[],"took_place":false}
+{"_id":5,"company_id":3,"tickets_id":[501,502,503,504],"date":{"$date":"2024-08-25T00:00:00Z"},"location":"Wroclaw","trip_review_id":[501],"took_place":true}
+{"_id":6,"company_id":4,"tickets_id":[],"date":{"$date":"2024-09-14T00:00:00Z"},"location":"Sopot","trip_review_id":[],"took_place":false}
+{"_id":7,"company_id":4,"tickets_id":[],"date":{"$date":"2024-09-15T00:00:00Z"},"location":"Gdynia","trip_review_id":[],"took_place":false}
+{"_id":8,"company_id":5,"tickets_id":[],"date":{"$date":"2024-09-29T00:00:00Z"},"location":"Katowice","trip_review_id":[],"took_place":false}

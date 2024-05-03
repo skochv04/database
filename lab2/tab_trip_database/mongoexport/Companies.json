@@ -1,0 +1,5 @@
+{"_id":1,"organized_trips_id":[1,2],"company_name":"Adventure Works"}
+{"_id":2,"organized_trips_id":[3,4],"company_name":"Travel Corp"}
+{"_id":3,"organized_trips_id":[5],"company_name":"Holiday Makers"}
+{"_id":4,"organized_trips_id":[6,7],"company_name":"Globe Trotters"}
+{"_id":5,"organized_trips_id":[8],"company_name":"Pathfinders"}

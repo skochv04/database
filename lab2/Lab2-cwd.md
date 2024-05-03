@@ -76,7 +76,19 @@ db.tip.aggregate([
 
 Wynik zapytania:
 
-Nie udało nam się zarejestrować wyniku zapytania z powodu zbyt długiego czasu wykonywania podzapytania
+Nie udało nam się zarejestrować wyniku zapytania z powodu zbyt długiego czasu wykonywania podzapytania.
+Zatem użyliśmy prostzego zapytania bez kosztownego łączenia kolekcji:
+
+```js
+db.tip.aggregate([
+    {$match: {date: {$gte: "2012-01-01", $lte: "2012-12-31"}}},
+    {$group: {_id: "$business_id", totalTips: {$sum: 1}}},
+    {$sort: {totalTips: -1}}])
+```
+
+Wynik zapytania:
+
+![](img/tipy.png)
 
 
 3. Recenzje mogą być oceniane przez innych użytkowników jako `cool`, `funny` lub `useful` (kolekcja `review`, pole `votes`, jedna recenzja może mieć kilka głosów w każdej kategorii).  Napisz zapytanie, które zwraca dla każdej z tych kategorii, ile sumarycznie recenzji zostało oznaczonych przez te kategorie (np. recenzja ma kategorię `funny` jeśli co najmniej jedna osoba zagłosowała w ten sposób na daną recenzję).
@@ -101,6 +113,8 @@ db.review1.aggregate([
 Wynik zapytania:
 
 ![](img/number_of_categories.png)
+
+<div style="page-break-after: always;"></div>
 
 4. Zwróć dane wszystkich użytkowników (kolekcja `user`), którzy nie mają ani jednego pozytywnego głosu (pole `votes`) z kategorii (`funny` lub `useful`), wynik posortuj alfabetycznie według nazwy użytkownika.
 
@@ -133,7 +147,11 @@ db.user.aggregate([
 ])
 ```
 
+Wynik zapytania:
+
 ![](img/users_result.png)
+
+<div style="page-break-after: always;"></div>
 
 5. Wyznacz, jaką średnia ocenę uzyskała każda firma na podstawie wszystkich recenzji (kolekcja `review`, pole `stars`). Ogranicz do firm, które uzyskały średnią powyżej 3 gwiazdek.
 
@@ -193,6 +211,7 @@ Wynik zapytania B:
 
 ![](img/businessB.png)
 
+<div style="page-break-after: always;"></div>
 
 # Zadanie 2 - modelowanie danych
 
@@ -243,6 +262,8 @@ Podejście tabelaryczne jest znane z modelu relacyjnego: uporządkujemy dane w t
     - Konieczność używania operacji łączenia dokumentów różnych kolekcji w sytuacji, gdy potrzebujemy dokument wraz z dokumentami, które znajdują się z nim w relacji
     - Konieczność użycia złożonych zapytań (w MongoDB) do łączenia wielu dokumentów z różnych kolekcji
     - W przypadku wielokrotnego odczytywania danych z powiązanych między sobą dokumentów różnych kolekcji zmniejsza się wydajność, ponieważ za każdym razem potrzebujemy ponownie łączyć dane
+
+<div style="page-break-after: always;"></div>
 
 #### b)  Utworzenie kolekcji i wypełnienie kolekcji przykładowymi danymi
 
@@ -299,6 +320,7 @@ Reviews
 ```
 
 Stworzenie bazy danych według wyżej przedstawionego pomysłu:
+
 ```js
 use tab_trip_database
 
@@ -309,8 +331,10 @@ db.createCollection("Tickets")
 db.createCollection("Reviews")
 ```
 
+<div style="page-break-after: always;"></div>
+
 Stworzenie rożnego rodzaju danych dla przykładowej bazy danych:
-    
+
 Kilka przydatnych informacji:
     
 - took_place ustawione na True w kolekcji Trips oznacza, że wycieczka się już odbyła,
@@ -364,31 +388,31 @@ db.Reviews.insertMany([
   { "_id": 201, "customer_id": 2, "trip_id": 2, "company_id": 1, "review_date": {"$date": "2023-04-01T00:00:00Z"}, "stars": 3, "review_description": "Decent, but could be better." },
   { "_id": 301, "customer_id": 3, "trip_id": 3, "company_id": 2, "review_date": {"$date": "2023-04-26T00:00:00Z"}, "stars": 5, "review_description": "It was super!" },
 ])
-
 ```
 
 Kolekcje po wypełnieniu danymi:
 
 - Companies
 
-![](img/60 - companies.png)
+![](img/60%20-%20companies.png)
 
 - Customers
 
-![](img/61 - customers.png)
+![](img/61%20-%20customers.png)
 
 - Reviews
 
-![](img/62 - reviews.png)
+![](img/62%20-%20reviews.png)
 
 - Tickets
 
-![](img/63 - tickets.png)
+![](img/63%20-%20tickets.png)
 
 - Trips
 
-![](img/64 - trips.png)
+![](img/64%20-%20trips.png)
 
+<div style="page-break-after: always;"></div>
 
 #### c)  Analiza wad/zalet danego podejścia na konkretnych przykładach
 
@@ -412,7 +436,7 @@ db.Trips.aggregate(
            foreignField: "_id",
            as: "Review"}},
 
-{$project: {"company_name" : "$Company.company_name", location: 1, "trip_reviews" : "$Review.stars"}}
+{$project: {"company_name" : "$Company.company_name", location: 1, "marks" : "$Review.stars"}}
 )
 ```
 
@@ -440,13 +464,12 @@ Przed wstawieniem ustawiliśmy status wydarzenia na odbyty.
 
 ```js
 db.Trips.updateOne(
-    { _id: 5 },
-    { $set: { took_place: true } }
+    { _id: 5 }, { $set: { took_place: true } }
 )
 ```
 
 ```js
-db.Reviews.insertOne({ "_id": 501, "customer_id": 1, "trip_id": 5, "company_id": 1, "review_date": {"$date": "2024-05-03T00:00:00Z"}, "stars": 4.5, "review_description": "Great trip but it seems to be too expensive" },)
+db.Reviews.insertOne({ "_id": 501, "customer_id": 1, "trip_id": 5, "company_id": 3, "review_date": {"$date": "2024-05-03T00:00:00Z"}, "stars": 4.5, "review_description": "Great trip but it seems to be too expensive" },)
 db.Customers.updateOne({"_id" : 1}, {$push: {customer_review_id: 501}})
 db.Trips.updateOne({"_id" : 5}, {$push: {trip_review_id: 501}})
 ```
@@ -465,6 +488,42 @@ Trips:
 
 ![](img/76.png)
 
+- Wyświetlenie średniej oceny dla każdej firmy `company_name` na podstawie wszystkich ocen z `reviews` dla każdej wycieczki `trip`, która już się odbyła
+
+Skoro dane są podzielone na kilka różnych kolekcji, zapytanie będzie dość skomplikowane i nie wydajne. Nie możemy uniknąć łączenia kilku tabel, co ma istotny wpływ na czas wykonania polecenia i jego rozmiar. W drugim podejściu będzie pokazane alternatywne wykonanie tego zypatania.
+
+```js
+db.Trips.aggregate([
+  {$match: {took_place: true}},
+  {$lookup: {
+    from: "Companies",
+    localField: "company_id",
+    foreignField: "_id",
+    as: "Company"
+  }},
+  {$unwind: "$Company"},
+  {$lookup: {
+    from: "Reviews",
+    localField: "trip_review_id",
+    foreignField: "_id",
+    as: "Review"
+  }},
+  {$unwind: "$Review"},
+  {$project: {
+    "company_id": "$Company._id",
+    "company_name": "$Company.company_name",
+    "marks": "$Review.stars"
+  }},
+  {$group: {
+    _id: "$company_name",
+    average_rating: {$avg: "$marks"}
+  }}
+])
+```
+
+Wynik danego zypytania:
+
+![](img/79.png)
 
 ### Podejście dokumentowe
 
@@ -482,7 +541,7 @@ W takim podejściu uporządkujemy dane w taki sposób, że każda kolekcja przed
     - Redundacja danych
     - Utrudnienia modyfikacji: w konsekwencji redundacji danych potrzebujemy modyfikować te same dane wielokrotnie w różnych miejscah
     - Konieczność użycia bardziej złożonych zapytań w przypadku, gdy potrzebujemy dostać się do informacji zawartych w dokumentach zagnieżdżonych
-    - W szczególnych przypadkach najlepszych model danych (np. w przypadku wielokrotnego zagnieżdżenia dokumentów w zagnieżdżnych dokumentach)
+    - W szczególnych przypadkach trudny do zrozumienia model danych (np. w przypadku wielokrotnego zagnieżdżenia dokumentów w zagnieżdżnych dokumentach)
     - Brak zagwarantowanej spójności danych
 
 W takim podejściu przekształciliśmy poprzednią strukturę tabelaryczną, używając dokumentów zagnieżdżonych. Z 5 kolekcji (Customers, Trips, Reviews, Companies, Tickets) zostało tylko 2 (Customers i Trips). Informacje z kolekcji "Companies" zostały przeniesione do "Trips", informacje o ticketach i reviews każdego z kilentów zostały przeniesione do dwóch tablic dokumentów zagnieżdżonych w kolekcji "Customers". Wynika to z tego, że te dane prawie nigdy nie są zmieniane (chyba że status Ticketu, ale to nawet łatwiej zmieniać w dokumencie danego klienta). W taki sposób zmniejszyła się ilość danych, natomias trochę utrudnił się cały schemat.
@@ -652,11 +711,11 @@ Kolekcje po wypełnieniu danymi:
 
 - Customers
 
-![](img/65 - customers.png)
+![](img/65%20-%20customers.png)
 
 - Trips
 
-![](img/66 - trips.png)
+![](img/66%20-%20trips.png)
 
 #### c)  Analiza wad/zalet danego podejścia na konkretnych przykładach
 
@@ -667,7 +726,7 @@ Dzięki temu, że mamy umieszczone te dane w jednym miejscu, zapytanie będzie d
 ```js
 db.Trips.aggregate(
     {$match: {"took_place": true}},
-    {$project: {company_name: 1, location: 1, "trip_reviews.stars": 1}}
+    {$project: {company_name: 1, location: 1, "marks": "$trip_reviews.stars"}}
 )
 ```
 
@@ -687,6 +746,7 @@ db.Customers.aggregate(
     ticket_status: "$owned_tickets.ticket_status", trip_id: "$owned_tickets.trip_id"}}
 )
 ```
+<div style="page-break-after: always;"></div>
 
 Wynik danego zypytania:
 
@@ -720,7 +780,32 @@ Trips:
 
 ![](img/78.png)
 
+- Wyświetlenie średniej oceny dla każdej firmy `company_name` na podstawie wszystkich ocen z `reviews` dla każdej wycieczki `trip`, która już się odbyła
+
+W porównywaniu do podejścia tabelarycznego, tutaj polecenie jest prostsze i wydajniejsze, skoro mamy informacje w jednej kolekcji i nie potrzebujemy używać kosztowny operator łączenia.
+
+```js
+db.Trips.aggregate(
+    {$match: {"took_place": true}},
+    {$project: {company_name: 1, "marks": "$trip_reviews.stars"}},
+    {$unwind: "$marks"},
+    {$group: {
+        _id: "$company_name",
+        average_rating: {$avg: "$marks"}
+        }}
+)
+
+```
+
+Wynik danego zypytania:
+
+![](img/80.png)
+
 ---
+
+## Wnioski
+
+W ramach danego ćwiczenia przetestowaliśmy działanie różnych operatorów do wyszukiwania danych oraz rozważyliśmy różne podejścia do modelowania dokumentowej bazy danych w MongoDB. Po przeprowadzeniu różnych eksperymentów, możemy wyciągnąć wniosek, że dokumentowe bazy danych są "samoopisujące się" i bardzo przydatne. Na podstawie zrealizowanego zadania №2 możemy stwierdzić, że każde podejście ma swoje wady i zalety. W przypadku, gdy dane są często modyfikowane, a zapytania do kilku encji są rzadkie - najlepszym sposobem jest "tabelaryczna" baza danych (podobnie do Transact SQL, dane każdej encji są umieszczone w różnych kolekcjach), natomiast w przypadku, gdy dane są modyfikowane rzadko, ale często korzystamy z różnych relacji, lepszym wariantem będzie "dokumentowe" podejście (dane są umieszczone w dokumentach zagnieżdżonych).
 
 Punktacja:
 

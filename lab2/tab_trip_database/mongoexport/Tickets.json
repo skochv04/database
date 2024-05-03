@@ -1,0 +1,8 @@
+{"_id":501,"trip_id":5,"reserved_seat_no":1,"ticket_status":"P","first_name":"Lisa","last_name":"White"}
+{"_id":101,"trip_id":1,"reserved_seat_no":1,"ticket_status":"P","first_name":"John","last_name":"Doe"}
+{"_id":102,"trip_id":1,"reserved_seat_no":2,"ticket_status":"P","first_name":"David","last_name":"Brown"}
+{"_id":201,"trip_id":2,"reserved_seat_no":1,"ticket_status":"P","first_name":"Anna","last_name":"Smith"}
+{"_id":502,"trip_id":5,"reserved_seat_no":2,"ticket_status":"N","first_name":"Lisa","last_name":"White"}
+{"_id":503,"trip_id":5,"reserved_seat_no":1,"ticket_status":"C","first_name":"Mark","last_name":"Taylor"}
+{"_id":301,"trip_id":3,"reserved_seat_no":1,"ticket_status":"N","first_name":"David","last_name":"Brown"}
+{"_id":504,"trip_id":5,"reserved_seat_no":4,"ticket_status":"C","first_name":"John","last_name":"Doe"}
