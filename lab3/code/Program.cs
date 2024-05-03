@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Data.Common;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 // // Console.WriteLine("Podaj nazwę produktu: ");
 // // String? prodName = Console.ReadLine();
@@ -47,7 +50,7 @@ using System.Linq;
 
 class Program
 {
-    private static Product createNewProduct()
+    private static void createNewProduct(ProdContext productContext)
     {
         Console.Write("Podaj nazwę nowego produktu: ");
         string prodName = Console.ReadLine();
@@ -57,144 +60,331 @@ class Program
         Product product = new Product { ProductName = prodName, UnitsInStock = quantity };
         Console.Write($"Został utworzony produkt: {product}");
 
-        return product;
+
+        productContext.Products.Add(product);
+        productContext.SaveChanges();
     }
 
-    private static Product findProduct(ProdContext productContext)
+    private static void addProductToBasket(ProdContext productContext, List<InvoiceItem> basketItems)
     {
-        Console.Write("Podaj ID produktu do wyszukiwania: ");
-        int prodID = Int32.Parse(Console.ReadLine());
-
-        var query = from prod in productContext.Products
-                    where prod.ProductID == prodID
-                    select prod;
-
-        return query.FirstOrDefault();
-    }
-
-    private static void showAllProducts(ProdContext productContext)
-    {
-        Console.WriteLine("Lista produktów: ");
-        foreach (Product product in productContext.Products)
+        int prodID, prodQuantity;
+        bool correctQuantity = false;
+        showAvailableProducts(productContext);
+        do
         {
-            Console.WriteLine($"{product.ProductID} | {product}");
-        }
+            Console.Write("Podaj ID produktu, który należy dodać do koszyka: ");
+            prodID = Int32.Parse(Console.ReadLine());
+            Console.Write("");
+        } while (!productAvailable(productContext, prodID));
 
-    }
 
-    private static Supplier createNewSupplier()
-    {
-        Console.Write("Podaj nazwę nowego dostawcy: ");
-        string companyName = Console.ReadLine();
-        Console.Write("Podaj nazwę miasta: ");
-        string city = Console.ReadLine();
-        Console.Write("Podaj nazwę ulicy: ");
-        string street = Console.ReadLine();
-
-        Supplier supplier = new Supplier { CompanyName = companyName, City = city, Street = street };
-        Console.Write($"Został utworzony dostawca: {supplier}.\n");
-
-        return supplier;
-    }
-
-    private static Supplier findSupplier(ProdContext productContext)
-    {
-        Console.Write("Podaj ID dostawcy do wyszukiwania: ");
-        int supplierID = Int32.Parse(Console.ReadLine());
-
-        var query = from supplier in productContext.Suppliers
-                    where supplier.SupplierID == supplierID
-                    select supplier;
-
-        return query.FirstOrDefault();
-    }
-
-    private static void showAllSuppliers(ProdContext productContext)
-    {
-        Console.WriteLine("Lista dostawców: ");
-        foreach (Supplier supplier in productContext.Suppliers)
+        do
         {
-            Console.WriteLine($"{supplier.SupplierID} | {supplier}");
-        }
+            Console.Write("");
+            Console.Write("Podaj ilość sztuk produktu: ");
+            prodQuantity = Int32.Parse(Console.ReadLine());
 
+            var query = from product in productContext.Products
+                        where product.ProductID == prodID && product.UnitsInStock >= prodQuantity
+                        select product;
+            if ((query?.Count() > 0))
+            {
+                correctQuantity = true;
+            }
+            else
+            {
+                Console.WriteLine("W sklepie nie ma takiej ilości produktów");
+            }
+        } while (!correctQuantity);
+        InvoiceItem item = new InvoiceItem { ProductID = prodID, Quantity = prodQuantity };
+        basketItems.Add(item);
+        Console.Write($"Do koszyka został dodany produkt o numerze {prodID}");
+    }
+
+    private static void removeProductFromBasket(ProdContext productContext, List<InvoiceItem> basketItems)
+    {
+        int prodID;
+        showProductsInBasket(productContext, basketItems);
+        bool successfulRemoving = false;
+        do
+        {
+            Console.Write("Podaj ID produktu, który należy usunąć z koszyka: ");
+            prodID = Int32.Parse(Console.ReadLine());
+            Console.WriteLine();
+        } while (!productExists(productContext, prodID));
+
+        foreach (InvoiceItem item in basketItems)
+        {
+            if (item.ProductID == prodID) basketItems.Remove(item);
+            Console.Write($"Z koszyka został usunięty produkt o numerze {prodID}");
+            successfulRemoving = true;
+        }
+        if (!successfulRemoving) { Console.Write($"W koszyka nie znaleziono produktu o numerze {prodID}"); }
+
+    }
+
+    private static void buyProductsInBasket(ProdContext prodContext, List<InvoiceItem> basketItems)
+    {
+        Invoice invoice = CreateInvoice(basketItems);
+        prodContext.Invoices.Add(invoice);
+        foreach (InvoiceItem item in basketItems)
+        {
+            var product = prodContext.Products.FirstOrDefault(prod => prod.ProductID == item.ProductID);
+            product.UnitsInStock -= item.Quantity;
+        }
+        prodContext.SaveChanges();
+        basketItems = new List<InvoiceItem>();
+    }
+
+    private static bool productAvailable(ProdContext productContext, int UserProductID)
+    {
+        var query = from product in productContext.Products
+                    where product.ProductID == UserProductID && product.UnitsInStock > 0
+                    select product;
+        return (query?.Count() > 0);
+    }
+
+    private static bool productExists(ProdContext productContext, int UserProductID)
+    {
+        var query = from product in productContext.Products
+                    where product.ProductID == UserProductID
+                    select product;
+        return (query?.Count() > 0);
+    }
+
+    private static void showAllProducts(ProdContext prodContext)
+    {
+        var query = from product in prodContext.Products
+                    select product;
+        foreach (var product in query)
+        {
+            Console.WriteLine(product);
+        }
+        if (query.Count() == 0)
+        {
+            Console.WriteLine("Brak produktów w bazie danych");
+        }
+    }
+    private static void showAvailableProducts(ProdContext prodContext)
+    {
+        var query = from product in prodContext.Products
+                    where product.UnitsInStock > 0
+                    select product;
+        foreach (var product in query)
+        {
+            Console.WriteLine(product);
+        }
+        if (query?.Count() == 0)
+        {
+            Console.WriteLine("Brak produktów w bazie danych");
+        }
+    }
+
+    private static void showProductsInBasket(ProdContext prodContext, List<InvoiceItem> basketItems)
+    {
+        foreach (InvoiceItem item in basketItems)
+        {
+            Console.WriteLine(item);
+        }
+    }
+
+    private static Invoice CreateInvoice(List<InvoiceItem> items)
+    {
+        return new Invoice
+        {
+            InvoiceItems = items
+        };
+    }
+
+    private static void showSoldInTransaction(ProdContext productContext)
+    {
+        int invoiceNumber;
+
+        Console.Write("Podaj ID transakcji do wypisywania zakupionych pozycji: ");
+        invoiceNumber = Int32.Parse(Console.ReadLine());
+        Console.WriteLine();
+
+        var invoice = productContext.Invoices.FirstOrDefault(inv => inv.InvoiceNumber == invoiceNumber);
+
+        if (invoice != null)
+        {
+            Console.WriteLine(invoice);
+        }
+        else
+        {
+            Console.WriteLine("Nie znaleziono transakcji o takim ID");
+        }
+    }
+
+    private static void showInvoicesIncludeProduct(ProdContext productContext)
+    {
+        int prodID;
+        showAllProducts(productContext);
+        do
+        {
+            Console.Write("Podaj ID produktu, który dla którego należy wyszukać transakcji: ");
+            prodID = Int32.Parse(Console.ReadLine());
+            Console.WriteLine();
+        } while (!productExists(productContext, prodID));
+
+        var query = from item in productContext.InvoiceItems
+                    where item.ProductID == prodID
+                    select item;
+
+        foreach (var item in query)
+        {
+            Console.WriteLine(item.InvoiceNumber);
+        }
+        if (query?.Count() == 0)
+        {
+            Console.WriteLine("Nie znaleziono transakcji, w których by występował dany");
+        }
+    }
+
+    private static void showOptions()
+    {
+        Console.WriteLine("1. Add new product");
+        Console.WriteLine("2. Show all products");
+        Console.WriteLine("3. Show available products");
+        Console.WriteLine("4. Add product to basket");
+        Console.WriteLine("5. Remove product from basket");
+        Console.WriteLine("6. Buy products in basket");
+        Console.WriteLine("7. Show products sold in transaction");
+        Console.WriteLine("8. Show invoices having sold the product");
+        Console.WriteLine("9. EXIT");
+    }
+
+    private static int getUserChoice()
+    {
+        int choice = 0;
+        string input;
+        do
+        {
+            Console.WriteLine();
+            showOptions();
+            Console.WriteLine("\nPodaj jedną liczbę z zakresu 1-9");
+            input = Console.ReadLine();
+            int.TryParse(input, out choice);
+        } while (choice < 0 || choice > 9);
+
+        return choice;
     }
 
     static void Main()
     {
         ProdContext productContext = new ProdContext();
+        List<InvoiceItem> basketItems = new List<InvoiceItem>();
 
-        Supplier supplier = null;
-        Product product = null;
+        bool exited = false;
 
-        Console.WriteLine("Dodać nowego dostawcę? (Tak/Nie)");
-        string choice = Console.ReadLine();
-        bool correctAnswer = false;
-        do
+        while (!exited)
         {
-            switch (choice)
+            switch (getUserChoice())
             {
-                case "Tak":
-                    supplier = createNewSupplier();
-                    productContext.Suppliers.Add(supplier);
-                    correctAnswer = true;
+                case 1: // Add new product
+                    createNewProduct(productContext);
                     break;
-                case "Nie":
-                    showAllSuppliers(productContext);
-                    supplier = findSupplier(productContext);
-                    correctAnswer = true;
+                case 2: // Show all products
+                    showAllProducts(productContext);
+                    break;
+                case 3: // Show available products
+                    showAvailableProducts(productContext);
+                    break;
+                case 4: // Add product to basket
+                    addProductToBasket(productContext, basketItems);
+                    break;
+                case 5: // Remove product from basket
+                    removeProductFromBasket(productContext, basketItems);
+                    break;
+                case 6: // Show products in basket
+                    showProductsInBasket(productContext, basketItems);
+                    break;
+                case 7: // Buy products in basket
+                    buyProductsInBasket(productContext, basketItems);
+                    break;
+                case 8: // Show products sold in transaction
+                    showSoldInTransaction(productContext);
+                    break;
+                case 9: // Show invoices having sold the product
+                    showInvoicesIncludeProduct(productContext);
+                    break;
+                case 10: // EXIT
+                    exited = true;
                     break;
             }
-        } while (!correctAnswer);
+        }
 
-        do
-        {
-            Console.WriteLine("Dodać nowy produkt? (Tak/Nie)");
-            choice = Console.ReadLine();
-            correctAnswer = false;
-            switch (choice)
-            {
-                case "Tak":
-                    product = createNewProduct();
-                    productContext.Products.Add(product);
-                    correctAnswer = true;
-                    break;
-                case "Nie":
-                    correctAnswer = true;
-                    break;
-            }
-            Console.WriteLine("");
-        } while (!correctAnswer || choice == "Tak");
+        // Product product = null;
 
-        productContext.SaveChanges();
+        // Console.WriteLine("Dodać nowego dostawcę? (Tak/Nie)");
+        // string choice = Console.ReadLine();
+        // bool correctAnswer = false;
+        // do
+        // {
+        //     switch (choice)
+        //     {
+        //         case "Tak":
+        //             supplier = createNewSupplier();
+        //             productContext.Suppliers.Add(supplier);
+        //             correctAnswer = true;
+        //             break;
+        //         case "Nie":
+        //             showAllSuppliers(productContext);
+        //             supplier = findSupplier(productContext);
+        //             correctAnswer = true;
+        //             break;
+        //     }
+        // } while (!correctAnswer);
+
+        // do
+        // {
+        //     Console.WriteLine("Dodać nowy produkt? (Tak/Nie)");
+        //     choice = Console.ReadLine();
+        //     correctAnswer = false;
+        //     switch (choice)
+        //     {
+        //         case "Tak":
+        //             product = createNewProduct();
+        //             productContext.Products.Add(product);
+        //             correctAnswer = true;
+        //             break;
+        //         case "Nie":
+        //             correctAnswer = true;
+        //             break;
+        //     }
+        //     Console.WriteLine("");
+        // } while (!correctAnswer || choice == "Tak");
+
+        // productContext.SaveChanges();
 
 
 
-        product = findProduct(productContext);
+        // product = findProduct(productContext);
 
-        Console.WriteLine("");
+        // Console.WriteLine("");
 
-        Console.WriteLine("Zmienić dostawcę dla produktu na podanego wyżej? (Tak/Nie)");
-        choice = Console.ReadLine();
-        correctAnswer = false;
-        do
-        {
-            switch (choice)
-            {
-                case "Tak":
-                    supplier.Products.Add(product);
-                    product.supplier = supplier;
-                    Console.Write($"\nDla productu: {product.ProductName} zmieniono dostawcę na: {supplier.CompanyName}.\n");
-                    productContext.SaveChanges();
-                    correctAnswer = true;
-                    break;
-                case "Nie":
-                    correctAnswer = true;
-                    break;
-            }
-        } while (!correctAnswer);
+        // Console.WriteLine("Zmienić dostawcę dla produktu na podanego wyżej? (Tak/Nie)");
+        // choice = Console.ReadLine();
+        // correctAnswer = false;
+        // do
+        // {
+        //     switch (choice)
+        //     {
+        //         case "Tak":
+        //             supplier.Products.Add(product);
+        //             product.supplier = supplier;
+        //             Console.Write($"\nDla productu: {product.ProductName} zmieniono dostawcę na: {supplier.CompanyName}.\n");
+        //             productContext.SaveChanges();
+        //             correctAnswer = true;
+        //             break;
+        //         case "Nie":
+        //             correctAnswer = true;
+        //             break;
+        //     }
+        // } while (!correctAnswer);
 
-        showAllProducts(productContext);
+        // showAllProducts(productContext);
 
-        showAllSuppliers(productContext);
+        // showAllSuppliers(productContext);
     }
 }
