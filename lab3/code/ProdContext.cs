@@ -3,7 +3,6 @@ public class ProdContext : DbContext
 {
     public DbSet<Product> Products { get; set; }
     public DbSet<Invoice> Invoices { get; set; }
-    // Basket
     public DbSet<InvoiceItem> InvoiceItems { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

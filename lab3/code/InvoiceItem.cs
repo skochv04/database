@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 public class InvoiceItem
 {
-    // Composite key
+    // Composite primary key
     [Key, Column(Order = 0)]
     public int InvoiceNumber { get; set; }
 
@@ -16,6 +16,7 @@ public class InvoiceItem
     public virtual Product Product { get; set; }
 
     public override string ToString()
+
     {
         return $"{Product}: {Quantity} szt.";
     }

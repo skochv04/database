@@ -6,6 +6,7 @@ public class Product
     public String? ProductName { get; set; }
     public int UnitsInStock { get; set; }
 
+    // Navigation properties
     public virtual ICollection<InvoiceItem> InvoiceItems { get; set; }
 
     public override string ToString()

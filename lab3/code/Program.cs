@@ -99,13 +99,13 @@ class Program
         InvoiceItem item = new InvoiceItem { ProductID = prodID, Quantity = prodQuantity };
         basketItems.Add(item);
         Console.Write($"Do koszyka został dodany produkt o numerze {prodID}");
+        productContext.SaveChanges();
     }
 
     private static void removeProductFromBasket(ProdContext productContext, List<InvoiceItem> basketItems)
     {
         int prodID;
         showProductsInBasket(productContext, basketItems);
-        bool successfulRemoving = false;
         do
         {
             Console.Write("Podaj ID produktu, który należy usunąć z koszyka: ");
@@ -113,13 +113,17 @@ class Program
             Console.WriteLine();
         } while (!productExists(productContext, prodID));
 
+        InvoiceItem item_to_remove = null;
         foreach (InvoiceItem item in basketItems)
         {
-            if (item.ProductID == prodID) basketItems.Remove(item);
-            Console.Write($"Z koszyka został usunięty produkt o numerze {prodID}");
-            successfulRemoving = true;
+            if (item.ProductID == prodID) item_to_remove = item;
         }
-        if (!successfulRemoving) { Console.Write($"W koszyka nie znaleziono produktu o numerze {prodID}"); }
+        if (item_to_remove != null)
+        {
+            basketItems.Remove(item_to_remove);
+            Console.Write($"Z koszyka został usunięty produkt o numerze {prodID}");
+        }
+        else { Console.Write($"W koszyka nie znaleziono produktu o numerze {prodID}"); }
 
     }
 
@@ -133,7 +137,7 @@ class Program
             product.UnitsInStock -= item.Quantity;
         }
         prodContext.SaveChanges();
-        basketItems = new List<InvoiceItem>();
+        Console.WriteLine("Produkty w kosyzku zostały kupione");
     }
 
     private static bool productAvailable(ProdContext productContext, int UserProductID)
@@ -162,7 +166,7 @@ class Program
         }
         if (query.Count() == 0)
         {
-            Console.WriteLine("Brak produktów w bazie danych");
+            Console.WriteLine("Nie znaleziono produktów w bazie danych");
         }
     }
     private static void showAvailableProducts(ProdContext prodContext)
@@ -176,7 +180,7 @@ class Program
         }
         if (query?.Count() == 0)
         {
-            Console.WriteLine("Brak produktów w bazie danych");
+            Console.WriteLine("Nie znaleziono dostępnych do zakupu produktów w bazie danych");
         }
     }
 
@@ -184,7 +188,12 @@ class Program
     {
         foreach (InvoiceItem item in basketItems)
         {
+            prodContext.Products.Find(item.ProductID);
             Console.WriteLine(item);
+        }
+        if (basketItems.Count() == 0)
+        {
+            Console.WriteLine("Nie znaleziono produktów w koszyku");
         }
     }
 
@@ -222,7 +231,7 @@ class Program
         showAllProducts(productContext);
         do
         {
-            Console.Write("Podaj ID produktu, który dla którego należy wyszukać transakcji: ");
+            Console.Write("Podaj ID produktu, dla którego należy wyszukać transakcji: ");
             prodID = Int32.Parse(Console.ReadLine());
             Console.WriteLine();
         } while (!productExists(productContext, prodID));
@@ -237,7 +246,7 @@ class Program
         }
         if (query?.Count() == 0)
         {
-            Console.WriteLine("Nie znaleziono transakcji, w których by występował dany");
+            Console.WriteLine("Nie znaleziono transakcji, w których by występował dany produkt");
         }
     }
 
@@ -248,10 +257,11 @@ class Program
         Console.WriteLine("3. Show available products");
         Console.WriteLine("4. Add product to basket");
         Console.WriteLine("5. Remove product from basket");
-        Console.WriteLine("6. Buy products in basket");
-        Console.WriteLine("7. Show products sold in transaction");
-        Console.WriteLine("8. Show invoices having sold the product");
-        Console.WriteLine("9. EXIT");
+        Console.WriteLine("6. Show products in basket");
+        Console.WriteLine("7. Buy products in basket");
+        Console.WriteLine("8. Show products sold in transaction");
+        Console.WriteLine("9. Show invoices having sold the product");
+        Console.WriteLine("10. EXIT");
     }
 
     private static int getUserChoice()
@@ -262,11 +272,11 @@ class Program
         {
             Console.WriteLine();
             showOptions();
-            Console.WriteLine("\nPodaj jedną liczbę z zakresu 1-9");
+            Console.WriteLine("\nPodaj jedną liczbę z zakresu 1-10");
             input = Console.ReadLine();
             int.TryParse(input, out choice);
-        } while (choice < 0 || choice > 9);
-
+        } while (choice < 0 || choice > 10);
+        Console.WriteLine();
         return choice;
     }
 
@@ -301,6 +311,7 @@ class Program
                     break;
                 case 7: // Buy products in basket
                     buyProductsInBasket(productContext, basketItems);
+                    basketItems = new List<InvoiceItem>();
                     break;
                 case 8: // Show products sold in transaction
                     showSoldInTransaction(productContext);
