@@ -11,6 +11,11 @@ public class Product
 
     public override string ToString()
     {
-        return $"Product #{ProductID} {ProductName}: {UnitsInStock} szt.";
+        return $"Product #{ProductID} {ProductName}";
+    }
+
+    public void printProductInStock()
+    {
+        Console.WriteLine($"Product #{ProductID} {ProductName}: {UnitsInStock} szt.");
     }
 }

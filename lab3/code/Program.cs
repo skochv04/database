@@ -3,6 +3,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 
 // // Console.WriteLine("Podaj nazwę produktu: ");
 // // String? prodName = Console.ReadLine();
@@ -58,7 +59,7 @@ class Program
         int quantity = Int32.Parse(Console.ReadLine());
 
         Product product = new Product { ProductName = prodName, UnitsInStock = quantity };
-        Console.Write($"Został utworzony produkt: {product}");
+        Console.Write($"Został utworzony produkt: {product.ProductName}");
 
 
         productContext.Products.Add(product);
@@ -72,15 +73,15 @@ class Program
         showAvailableProducts(productContext);
         do
         {
-            Console.Write("Podaj ID produktu, który należy dodać do koszyka: ");
+            Console.Write("\nPodaj ID produktu, który należy dodać do koszyka: ");
             prodID = Int32.Parse(Console.ReadLine());
-            Console.Write("");
+            Console.WriteLine();
         } while (!productAvailable(productContext, prodID));
 
 
         do
         {
-            Console.Write("");
+            Console.WriteLine();
             Console.Write("Podaj ilość sztuk produktu: ");
             prodQuantity = Int32.Parse(Console.ReadLine());
 
@@ -108,7 +109,7 @@ class Program
         showProductsInBasket(productContext, basketItems);
         do
         {
-            Console.Write("Podaj ID produktu, który należy usunąć z koszyka: ");
+            Console.Write("\nPodaj ID produktu, który należy usunąć z koszyka: ");
             prodID = Int32.Parse(Console.ReadLine());
             Console.WriteLine();
         } while (!productExists(productContext, prodID));
@@ -162,7 +163,7 @@ class Program
                     select product;
         foreach (var product in query)
         {
-            Console.WriteLine(product);
+            product.printProductInStock();
         }
         if (query.Count() == 0)
         {
@@ -176,7 +177,7 @@ class Program
                     select product;
         foreach (var product in query)
         {
-            Console.WriteLine(product);
+            product.printProductInStock();
         }
         if (query?.Count() == 0)
         {
@@ -188,8 +189,11 @@ class Program
     {
         foreach (InvoiceItem item in basketItems)
         {
-            var product = prodContext.Products.FirstOrDefault(prod => prod.ProductID == item.ProductID);
-            Console.WriteLine($"Product #{product.ProductID} {product.ProductName}: {item.Quantity} szt.");
+            var product = prodContext.InvoiceItems
+                                 .Include(ii => ii.Product)
+                                 .FirstOrDefault(ii => ii.ProductID == item.ProductID);
+
+            Console.WriteLine($"{product}: {item.Quantity} szt.");
         }
         if (basketItems.Count() == 0)
         {
@@ -213,8 +217,10 @@ class Program
         invoiceNumber = Int32.Parse(Console.ReadLine());
         Console.WriteLine();
 
-        var invoice = productContext.Invoices.FirstOrDefault(inv => inv.InvoiceNumber == invoiceNumber);
-
+        var invoice = productContext.Invoices
+                              .Include(inv => inv.InvoiceItems)
+                              .ThenInclude(item => item.Product)
+                              .FirstOrDefault(inv => inv.InvoiceNumber == invoiceNumber);
         if (invoice != null)
         {
             Console.WriteLine(invoice);
@@ -236,13 +242,13 @@ class Program
             Console.WriteLine();
         } while (!productExists(productContext, prodID));
 
-        var query = from item in productContext.InvoiceItems
+        var query = from item in productContext.InvoiceItems.Include(ii => ii.Invoice)
                     where item.ProductID == prodID
                     select item;
 
         foreach (var item in query)
         {
-            Console.WriteLine(item.InvoiceNumber);
+            Console.WriteLine("Invoice #{0}", item.InvoiceNumber);
         }
         if (query?.Count() == 0)
         {

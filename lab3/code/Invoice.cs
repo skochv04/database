@@ -14,7 +14,7 @@ public class Invoice
         foreach (InvoiceItem item in InvoiceItems)
         {
             i++;
-            sb.Append($"\t{i}) {item}");
+            sb.Append($"\n\t{i}) {item}");
         }
         return sb.ToString();
     }

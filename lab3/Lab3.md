@@ -498,9 +498,457 @@ static void Main()
 
 # Zadanie d - modelowanie relacji wiele-do-wielu
 
+- Została usunięta klasa "Supplier", skoro nie jest potrzebna w ramach danego zadania.
+- Pojawiła się klasa "Invoice" odpowiednio do treści zadania, w której mieści się kolekcja pozycji "InvoiceItem" sprzedanych w ramach danej transakcji.
+- Dodaliśmy pomocniczą klasę "InvoiceItem", która reprezentuje pojedynczą pozycję transakcji: numer produktu oraz ilość zakupionych produktów o tym numerze w ramach danej transakcji. Ma ona również navigation properties do klasy "Product" oraz "Invoice".
+- W klasie "Product" została dodana dodatkowa metoda wypisywania oraz navigation properties do klasy "InvoiceItem".
+- Klasę ProdContext rozszerzyliśmy o sety "Invoice" oraz "InvoiceItem", jednocześnie usunęliśmy zbiór "Suppliers". Oprócz tego, wyznaczyliśmy Composite PrimaryKey.
+- Kod głównego programu został dopasowany do funkcjonalności, potrzebnych w tym zadaniu. Pojawiła się możliwość wybory wśród 10 opcji akcji:
+
+![](img/61.png)
+
 Schemat zmienionej bazy danych, wygenerowany przez DataGrip:
 
 ![](img/60.png)
+
+- Stwórmy kilka produktów 
+
+Tabela Products przed wywołaniem metody dodającej:
+
+![](img/62.png)
+
+Wynik działania programu w postaci konsolowych komunikatów:
+
+![](img/63.png)
+
+Sprawdżmy trwałość zmian za pomocą DataGrip. Tabela Product po dodaniu produktów:
+
+![](img/64.png)
+
+- Następnie dodamy produkty do koszyka i kupimy je w kilku transakcjach
+
+Tabela Products przed wywołaniem metody kupującej:
+
+![](img/64.png)
+
+Wynik działania programu w postaci konsolowych komunikatów:
+
+![](img/65.png)
+
+Przekonymy się w tym, że liczba produktów w sklepie została zmniejszona za pomocą DataGrip. Tabela Product po zakupieniu produktów:
+
+![](img/66.png)
+
+- Produkty, które zostały sprzedane w ramach wybranej transakcji:
+
+![](img/68.png)
+
+- Faktury, w ramach których sprzedany został produkt
+
+![](img/69.png)
+
+Kod:
+
+- Product.cs
+
+```c#
+using System.Runtime.Intrinsics.X86;
+
+public class Product
+{
+    public int ProductID { get; set; }
+    public String? ProductName { get; set; }
+    public int UnitsInStock { get; set; }
+
+    // Navigation properties
+    public virtual ICollection<InvoiceItem> InvoiceItems { get; set; }
+
+    public override string ToString()
+    {
+        return $"Product #{ProductID} {ProductName}";
+    }
+
+    public void printProductInStock()
+    {
+        Console.WriteLine($"Product #{ProductID} {ProductName}: {UnitsInStock} szt.");
+    }
+}
+```
+
+- ProdContext.cs
+
+```c#
+using Microsoft.EntityFrameworkCore;
+public class ProdContext : DbContext
+{
+    public DbSet<Product> Products { get; set; }
+    public DbSet<Invoice> Invoices { get; set; }
+    public DbSet<InvoiceItem> InvoiceItems { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        optionsBuilder.UseSqlite("Datasource=MyProductDatabase");
+    }
+
+    // Set composite primary key for InvoiceItems
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<InvoiceItem>()
+        .HasKey(x => new { x.InvoiceNumber, x.ProductID });
+    }
+
+}
+```
+
+- Invoice.cs
+
+```c#
+using System.ComponentModel.DataAnnotations;
+using System.Text;
+
+public class Invoice
+{
+    // Primary key
+    [Key]
+    public int InvoiceNumber { get; set; }
+    public ICollection<InvoiceItem> InvoiceItems { get; set; }
+    public override string ToString()
+    {
+        StringBuilder sb = new($"Invoice {InvoiceNumber}:");
+        int i = 0;
+        foreach (InvoiceItem item in InvoiceItems)
+        {
+            i++;
+            sb.Append($"\n\t{i}) {item}");
+        }
+        return sb.ToString();
+    }
+}
+```
+
+- InvoiceItem.cs (klasa pomocnicza)
+
+```c#
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+public class InvoiceItem
+{
+    // Composite primary key
+    [Key, Column(Order = 0)]
+    public int InvoiceNumber { get; set; }
+
+    [Key, Column(Order = 1)]
+    public int ProductID { get; set; }
+    public int Quantity { get; set; }
+
+    // Navigation properties
+    public virtual Invoice Invoice { get; set; }
+    public virtual Product Product { get; set; }
+
+    public override string ToString()
+
+    {
+        return $"{Product}: {Quantity} szt.";
+    }
+}
+```
+
+- Program.cs
+
+```c#
+using System;
+using System.Data.Common;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+
+class Program
+{
+    private static void createNewProduct(ProdContext productContext)
+    {
+        Console.Write("Podaj nazwę nowego produktu: ");
+        string prodName = Console.ReadLine();
+        Console.Write("Podaj ilość jednostek danego produktu dostępnych w sklepie: ");
+        int quantity = Int32.Parse(Console.ReadLine());
+
+        Product product = new Product { ProductName = prodName, UnitsInStock = quantity };
+        Console.Write($"Został utworzony produkt: {product.ProductName}");
+
+
+        productContext.Products.Add(product);
+        productContext.SaveChanges();
+    }
+
+    private static void addProductToBasket(ProdContext productContext, List<InvoiceItem> basketItems)
+    {
+        int prodID, prodQuantity;
+        bool correctQuantity = false;
+        showAvailableProducts(productContext);
+        do
+        {
+            Console.Write("\nPodaj ID produktu, który należy dodać do koszyka: ");
+            prodID = Int32.Parse(Console.ReadLine());
+            Console.WriteLine();
+        } while (!productAvailable(productContext, prodID));
+
+
+        do
+        {
+            Console.WriteLine();
+            Console.Write("Podaj ilość sztuk produktu: ");
+            prodQuantity = Int32.Parse(Console.ReadLine());
+
+            var query = from product in productContext.Products
+                        where product.ProductID == prodID && product.UnitsInStock >= prodQuantity
+                        select product;
+            if ((query?.Count() > 0))
+            {
+                correctQuantity = true;
+            }
+            else
+            {
+                Console.WriteLine("W sklepie nie ma takiej ilości produktów");
+            }
+        } while (!correctQuantity);
+        InvoiceItem item = new InvoiceItem { ProductID = prodID, Quantity = prodQuantity };
+        basketItems.Add(item);
+        Console.Write($"Do koszyka został dodany produkt o numerze {prodID}");
+        productContext.SaveChanges();
+    }
+
+    private static void removeProductFromBasket(ProdContext productContext, List<InvoiceItem> basketItems)
+    {
+        int prodID;
+        showProductsInBasket(productContext, basketItems);
+        do
+        {
+            Console.Write("\nPodaj ID produktu, który należy usunąć z koszyka: ");
+            prodID = Int32.Parse(Console.ReadLine());
+            Console.WriteLine();
+        } while (!productExists(productContext, prodID));
+
+        InvoiceItem item_to_remove = null;
+        foreach (InvoiceItem item in basketItems)
+        {
+            if (item.ProductID == prodID) item_to_remove = item;
+        }
+        if (item_to_remove != null)
+        {
+            basketItems.Remove(item_to_remove);
+            Console.Write($"Z koszyka został usunięty produkt o numerze {prodID}");
+        }
+        else { Console.Write($"W koszyka nie znaleziono produktu o numerze {prodID}"); }
+
+    }
+
+    private static void buyProductsInBasket(ProdContext prodContext, List<InvoiceItem> basketItems)
+    {
+        Invoice invoice = CreateInvoice(basketItems);
+        prodContext.Invoices.Add(invoice);
+        foreach (InvoiceItem item in basketItems)
+        {
+            var product = prodContext.Products.FirstOrDefault(prod => prod.ProductID == item.ProductID);
+            product.UnitsInStock -= item.Quantity;
+        }
+        prodContext.SaveChanges();
+        Console.WriteLine("Produkty w kosyzku zostały kupione");
+    }
+
+    private static bool productAvailable(ProdContext productContext, int UserProductID)
+    {
+        var query = from product in productContext.Products
+                    where product.ProductID == UserProductID && product.UnitsInStock > 0
+                    select product;
+        return (query?.Count() > 0);
+    }
+
+    private static bool productExists(ProdContext productContext, int UserProductID)
+    {
+        var query = from product in productContext.Products
+                    where product.ProductID == UserProductID
+                    select product;
+        return (query?.Count() > 0);
+    }
+
+    private static void showAllProducts(ProdContext prodContext)
+    {
+        var query = from product in prodContext.Products
+                    select product;
+        foreach (var product in query)
+        {
+            product.printProductInStock();
+        }
+        if (query.Count() == 0)
+        {
+            Console.WriteLine("Nie znaleziono produktów w bazie danych");
+        }
+    }
+    private static void showAvailableProducts(ProdContext prodContext)
+    {
+        var query = from product in prodContext.Products
+                    where product.UnitsInStock > 0
+                    select product;
+        foreach (var product in query)
+        {
+            product.printProductInStock();
+        }
+        if (query?.Count() == 0)
+        {
+            Console.WriteLine("Nie znaleziono dostępnych do zakupu produktów w bazie danych");
+        }
+    }
+
+    private static void showProductsInBasket(ProdContext prodContext, List<InvoiceItem> basketItems)
+    {
+        foreach (InvoiceItem item in basketItems)
+        {
+            var product = prodContext.InvoiceItems
+                                 .Include(ii => ii.Product)
+                                 .FirstOrDefault(ii => ii.ProductID == item.ProductID);
+
+            Console.WriteLine($"{product}: {item.Quantity} szt.");
+        }
+        if (basketItems.Count() == 0)
+        {
+            Console.WriteLine("Nie znaleziono produktów w koszyku");
+        }
+    }
+
+    private static Invoice CreateInvoice(List<InvoiceItem> items)
+    {
+        return new Invoice
+        {
+            InvoiceItems = items
+        };
+    }
+
+    private static void showSoldInTransaction(ProdContext productContext)
+    {
+        int invoiceNumber;
+
+        Console.Write("Podaj ID transakcji do wypisywania zakupionych pozycji: ");
+        invoiceNumber = Int32.Parse(Console.ReadLine());
+        Console.WriteLine();
+
+        var invoice = productContext.Invoices
+                              .Include(inv => inv.InvoiceItems)
+                              .ThenInclude(item => item.Product)
+                              .FirstOrDefault(inv => inv.InvoiceNumber == invoiceNumber);
+        if (invoice != null)
+        {
+            Console.WriteLine(invoice);
+        }
+        else
+        {
+            Console.WriteLine("Nie znaleziono transakcji o takim ID");
+        }
+    }
+
+    private static void showInvoicesIncludeProduct(ProdContext productContext)
+    {
+        int prodID;
+        showAllProducts(productContext);
+        do
+        {
+            Console.Write("Podaj ID produktu, dla którego należy wyszukać transakcji: ");
+            prodID = Int32.Parse(Console.ReadLine());
+            Console.WriteLine();
+        } while (!productExists(productContext, prodID));
+
+        var query = from item in productContext.InvoiceItems.Include(ii => ii.Invoice)
+                    where item.ProductID == prodID
+                    select item;
+
+        foreach (var item in query)
+        {
+            Console.WriteLine("Invoice #{0}", item.InvoiceNumber);
+        }
+        if (query?.Count() == 0)
+        {
+            Console.WriteLine("Nie znaleziono transakcji, w których by występował dany produkt");
+        }
+    }
+
+    private static void showOptions()
+    {
+        Console.WriteLine("1. Add new product");
+        Console.WriteLine("2. Show all products");
+        Console.WriteLine("3. Show available products");
+        Console.WriteLine("4. Add product to basket");
+        Console.WriteLine("5. Remove product from basket");
+        Console.WriteLine("6. Show products in basket");
+        Console.WriteLine("7. Buy products in basket");
+        Console.WriteLine("8. Show products sold in transaction");
+        Console.WriteLine("9. Show invoices having sold the product");
+        Console.WriteLine("10. EXIT");
+    }
+
+    private static int getUserChoice()
+    {
+        int choice = 0;
+        string input;
+        do
+        {
+            Console.WriteLine();
+            showOptions();
+            Console.WriteLine("\nPodaj jedną liczbę z zakresu 1-10");
+            input = Console.ReadLine();
+            int.TryParse(input, out choice);
+        } while (choice < 0 || choice > 10);
+        Console.WriteLine();
+        return choice;
+    }
+
+    static void Main()
+    {
+        ProdContext productContext = new ProdContext();
+        List<InvoiceItem> basketItems = new List<InvoiceItem>();
+
+        bool exited = false;
+
+        while (!exited)
+        {
+            switch (getUserChoice())
+            {
+                case 1: // Add new product
+                    createNewProduct(productContext);
+                    break;
+                case 2: // Show all products
+                    showAllProducts(productContext);
+                    break;
+                case 3: // Show available products
+                    showAvailableProducts(productContext);
+                    break;
+                case 4: // Add product to basket
+                    addProductToBasket(productContext, basketItems);
+                    break;
+                case 5: // Remove product from basket
+                    removeProductFromBasket(productContext, basketItems);
+                    break;
+                case 6: // Show products in basket
+                    showProductsInBasket(productContext, basketItems);
+                    break;
+                case 7: // Buy products in basket
+                    buyProductsInBasket(productContext, basketItems);
+                    basketItems = new List<InvoiceItem>();
+                    break;
+                case 8: // Show products sold in transaction
+                    showSoldInTransaction(productContext);
+                    break;
+                case 9: // Show invoices having sold the product
+                    showInvoicesIncludeProduct(productContext);
+                    break;
+                case 10: // EXIT
+                    exited = true;
+                    break;
+            }
+        }
+    }
+}
+```
 
 --- 
 
