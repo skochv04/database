@@ -6,8 +6,13 @@ internal class Program
 {
     private static Company? CreateCompany()
     {
-        Console.Write("Podaj typ nowej firmy (Supplier/Customer): ");
-        var companyType = Console.ReadLine();
+        var companyType = "";
+        do
+        {
+            Console.Write("Podaj typ nowej firmy (Supplier/Customer): ");
+            companyType = Console.ReadLine();
+        }
+        while (companyType?.Trim().ToLower() != "supplier" && companyType?.Trim().ToLower() != "customer");
 
         Console.Write("Podaj nazwę nowej firmy: ");
         var companyName = Console.ReadLine();
@@ -57,13 +62,13 @@ internal class Program
         Console.Write("Podaj ID firmy do usunięcia: ");
         var companyId = int.Parse(Console.ReadLine());
         var company = companyContext.Companies.FirstOrDefault(comp => comp.CompanyID == companyId);
-    
+
         if (company == null)
         {
             Console.WriteLine("Nie znaleziono firmy o podanym ID.");
             return;
         }
-    
+
         companyContext.Companies.Remove(company);
         companyContext.SaveChanges();
         Console.WriteLine("Firma została usunięta.");
@@ -73,18 +78,18 @@ internal class Program
     {
         Console.Write("Podaj ID firmy do wyszukiwania: ");
         var companyId = int.Parse(Console.ReadLine());
-    
+
         var query = from comp in productContext.Companies
-            where comp.CompanyID == companyId
-            select comp;
-    
+                    where comp.CompanyID == companyId
+                    select comp;
+
         return query.FirstOrDefault();
     }
 
     private static void ShowAllSuppliers(CompanyContext companyContext)
     {
         Console.WriteLine("Lista dostawców: ");
-        
+
         foreach (Supplier customer in companyContext.Suppliers)
         {
             Console.WriteLine(customer);
@@ -114,7 +119,7 @@ internal class Program
     private static void Main()
     {
         var companyContext = new CompanyContext();
-        
+
         Company? company = null;
         var correctAnswer = false;
         String? choice;
@@ -144,6 +149,6 @@ internal class Program
         ShowAllCompanies(companyContext);
         ShowAllSuppliers(companyContext);
         ShowAllCustomers(companyContext);
-        
+
     }
 }

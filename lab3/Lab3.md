@@ -502,7 +502,7 @@ static void Main()
 - Pojawiła się klasa "Invoice" odpowiednio do treści zadania, w której mieści się kolekcja pozycji "InvoiceItem" sprzedanych w ramach danej transakcji.
 - Dodaliśmy pomocniczą klasę "InvoiceItem", która reprezentuje pojedynczą pozycję transakcji: numer produktu oraz ilość zakupionych produktów o tym numerze w ramach danej transakcji. Ma ona również navigation properties do klasy "Product" oraz "Invoice".
 - W klasie "Product" została dodana dodatkowa metoda wypisywania oraz navigation properties do klasy "InvoiceItem".
-- Klasę ProdContext rozszerzyliśmy o sety "Invoice" oraz "InvoiceItem", jednocześnie usunęliśmy zbiór "Suppliers". Oprócz tego, wyznaczyliśmy Composite PrimaryKey.
+- Klasę ProdContext rozszerzyliśmy o zbiory "Invoice" oraz "InvoiceItem", jednocześnie usunęliśmy zbiór "Suppliers". Oprócz tego, wyznaczyliśmy Composite PrimaryKey.
 - Kod głównego programu został dopasowany do funkcjonalności, potrzebnych w tym zadaniu. Pojawiła się możliwość wybory wśród 10 opcji akcji:
 
 ![](img/61.png)
@@ -535,7 +535,7 @@ Wynik działania programu w postaci konsolowych komunikatów (druga transakcja):
 
 ![](img/66.png)
 
-Wynik działania programu w postaci konsolowych komunikatów (druga transakcja):
+Wynik działania programu w postaci konsolowych komunikatów (trzecia transakcja):
 
 ![](img/67.png)
 
@@ -967,6 +967,25 @@ class Program
 # Zadanie e - Table-Per-Hierarchy:
 
 Zgodnie ze strategią Table-Per-Hierarchy, tworzymy jedną tabelę Company, która przechowuje wszystkie typy klas
+Company.cs:
+
+```c#
+namespace zad5;
+
+internal abstract class Company
+{
+    public int CompanyID { get; set; }
+    public string CompanyName { get; set; } = String.Empty;
+    public string Street { get; set; } = String.Empty;
+    public string City { get; set; } = String.Empty;
+    public string ZipCode { get; set; } = String.Empty;
+
+    public override string ToString()
+    {
+        return $"[{CompanyID}] {CompanyName}";
+    }
+}
+```
 
 Supplier.cs:
 
@@ -1002,22 +1021,22 @@ internal class Customer : Company
 }
 ```
 
-Company.cs:
-
+CompanyContext.cs
 ```c#
+using Microsoft.EntityFrameworkCore;
+
 namespace zad5;
 
-internal abstract class Company
+internal class CompanyContext : DbContext
 {
-    public int CompanyID { get; set; }
-    public string CompanyName { get; set; } = String.Empty;
-    public string Street { get; set; } = String.Empty;
-    public string City { get; set; } = String.Empty;
-    public string ZipCode { get; set; } = String.Empty;
+    public DbSet<Company>? Companies { get; set; }
+    public DbSet<Supplier>? Suppliers { get; set; }
+    public DbSet<Customer>? Customers { get; set; }
 
-    public override string ToString()
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        return $"[{CompanyID}] {CompanyName}";
+        base.OnConfiguring(optionsBuilder);
+        optionsBuilder.UseSqlite("Datasource=CompaniesDatabase.db");
     }
 }
 ```
@@ -1027,8 +1046,13 @@ CreateCompany()
 ```c#
 private static Company? CreateCompany()
     {
-        Console.Write("Podaj typ nowej firmy (Supplier/Customer): ");
-        var companyType = Console.ReadLine();
+        var companyType = "";
+        do
+        {
+            Console.Write("Podaj typ nowej firmy (Supplier/Customer): ");
+            companyType = Console.ReadLine();
+        }
+        while (companyType?.Trim().ToLower() != "supplier" && companyType?.Trim().ToLower() != "customer");
 
         Console.Write("Podaj nazwę nowej firmy: ");
         var companyName = Console.ReadLine();
@@ -1077,15 +1101,15 @@ private static Company? CreateCompany()
 FindCompany()
 
 ```c#
-    private static Company? FindCompany(CompanyContext productContext)
+    private static Company? FindCompany(CompanyContext companyContext)
     {
         Console.Write("Podaj ID firmy do wyszukiwania: ");
         var companyId = int.Parse(Console.ReadLine());
-    
-        var query = from comp in productContext.Companies
-            where comp.CompanyID == companyId
-            select comp;
-    
+
+        var query = from comp in companyContext.Companies
+                    where comp.CompanyID == companyId
+                    select comp;
+
         return query.FirstOrDefault();
     }
 ```
@@ -1170,7 +1194,7 @@ main programu Program.cs:
     }
 ```
 
-RemoveCompany.cs
+RemoveCompany
 
 ```c#
     private static void RemoveCompany(CompanyContext companyContext)
@@ -1211,7 +1235,6 @@ Następnie dodajemy tą samą metodą wiele Supplierów oraz Customersów
 ...
 
 ![](img/img-zad5/2.png)
-
 
 Widok bazy danych:
 
