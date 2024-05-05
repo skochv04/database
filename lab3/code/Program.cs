@@ -189,9 +189,9 @@ class Program
     {
         foreach (InvoiceItem item in basketItems)
         {
-            var product = prodContext.InvoiceItems
-                                 .Include(ii => ii.Product)
-                                 .FirstOrDefault(ii => ii.ProductID == item.ProductID);
+            var product = prodContext.Products
+                                  .Include(ii => ii.InvoiceItems)
+                                  .FirstOrDefault(ii => ii.ProductID == item.ProductID);
 
             Console.WriteLine($"{product}: {item.Quantity} szt.");
         }

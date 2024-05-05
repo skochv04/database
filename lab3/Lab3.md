@@ -527,25 +527,37 @@ Sprawdżmy trwałość zmian za pomocą DataGrip. Tabela Product po dodaniu prod
 
 - Następnie dodamy produkty do koszyka i kupimy je w kilku transakcjach
 
-Tabela Products przed wywołaniem metody kupującej:
-
-![](img/64.png)
-
-Wynik działania programu w postaci konsolowych komunikatów:
+Wynik działania programu w postaci konsolowych komunikatów (pierwsza transakcja):
 
 ![](img/65.png)
 
-Przekonymy się w tym, że liczba produktów w sklepie została zmniejszona za pomocą DataGrip. Tabela Product po zakupieniu produktów:
+Wynik działania programu w postaci konsolowych komunikatów (druga transakcja):
 
 ![](img/66.png)
 
-- Produkty, które zostały sprzedane w ramach wybranej transakcji:
+Wynik działania programu w postaci konsolowych komunikatów (druga transakcja):
+
+![](img/67.png)
+
+Przekonymy się w tym, że liczba produktów w sklepie została zmniejszona za pomocą DataGrip. Tabela Product po zakupieniu produktów:
 
 ![](img/68.png)
 
-- Faktury, w ramach których sprzedany został produkt
+Tabela Invoice po przeprowadzeniu 3 transakcji:
 
 ![](img/69.png)
+
+Tabela InvoiceItems po przeprowadzeniu 3 transakcji:
+
+![](img/70.png)
+
+- Produkty, które zostały sprzedane w ramach wybranej transakcji:
+
+![](img/71.png)
+
+- Faktury, w ramach których sprzedany został produkt
+
+![](img/72.png)
 
 Kod:
 
@@ -805,9 +817,9 @@ class Program
     {
         foreach (InvoiceItem item in basketItems)
         {
-            var product = prodContext.InvoiceItems
-                                 .Include(ii => ii.Product)
-                                 .FirstOrDefault(ii => ii.ProductID == item.ProductID);
+            var product = prodContext.Products
+                                  .Include(ii => ii.InvoiceItems)
+                                  .FirstOrDefault(ii => ii.ProductID == item.ProductID);
 
             Console.WriteLine($"{product}: {item.Quantity} szt.");
         }
