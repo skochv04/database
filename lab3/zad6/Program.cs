@@ -60,34 +60,34 @@ internal class Program
         Console.Write("Podaj ID firmy do usunięcia: ");
         var companyId = int.Parse(Console.ReadLine());
         var company = companyContext.Companies.FirstOrDefault(comp => comp.CompanyID == companyId);
-    
+
         if (company == null)
         {
             Console.WriteLine("Nie znaleziono firmy o podanym ID.");
             return;
         }
-    
+
         companyContext.Companies.Remove(company);
         companyContext.SaveChanges();
         Console.WriteLine("Firma została usunięta.");
     }
 
-    private static Company? FindCompany(CompanyContext productContext)
+    private static Company? FindCompany(CompanyContext companyContext)
     {
         Console.Write("Podaj ID firmy do wyszukiwania: ");
         var companyId = int.Parse(Console.ReadLine());
-    
-        var query = from comp in productContext.Companies
-            where comp.CompanyID == companyId
-            select comp;
-    
+
+        var query = from comp in companyContext.Companies
+                    where comp.CompanyID == companyId
+                    select comp;
+
         return query.FirstOrDefault();
     }
 
     private static void ShowAllSuppliers(CompanyContext companyContext)
     {
         Console.WriteLine("Lista dostawców: ");
-        
+
         foreach (Supplier customer in companyContext.Suppliers)
         {
             Console.WriteLine(customer);
@@ -117,7 +117,7 @@ internal class Program
     private static void Main()
     {
         var companyContext = new CompanyContext();
-        
+
         Company? company = null;
         var correctAnswer = false;
         String? choice;
@@ -144,9 +144,33 @@ internal class Program
                     break;
             }
         } while (!correctAnswer || choice == "Tak");
+
+        Console.WriteLine();
+
         ShowAllCompanies(companyContext);
+        Console.WriteLine();
         ShowAllSuppliers(companyContext);
+        Console.WriteLine();
         ShowAllCustomers(companyContext);
-        
+
+        Console.WriteLine();
+
+        do
+        {
+            Console.WriteLine("Wyszukać firmę? (Tak/Nie)");
+            choice = Console.ReadLine();
+            switch (choice)
+            {
+                case "Tak":
+                    Company found = FindCompany(companyContext);
+                    Console.WriteLine(found);
+                    break;
+                case "Nie":
+                    correctAnswer = true;
+                    break;
+            }
+            Console.WriteLine();
+        } while (!correctAnswer || choice == "Tak");
+
     }
 }

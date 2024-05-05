@@ -1154,6 +1154,27 @@ ShowAllCompanies()
     }
 ```
 
+RemoveCompany
+
+```c#
+    private static void RemoveCompany(CompanyContext companyContext)
+    {
+        Console.Write("Podaj ID firmy do usunięcia: ");
+        var companyId = int.Parse(Console.ReadLine());
+        var company = companyContext.Companies.FirstOrDefault(comp => comp.CompanyID == companyId);
+    
+        if (company == null)
+        {
+            Console.WriteLine("Nie znaleziono firmy o podanym ID.");
+            return;
+        }
+    
+        companyContext.Companies.Remove(company);
+        companyContext.SaveChanges();
+        Console.WriteLine("Firma została usunięta.");
+    }
+```
+
 main programu Program.cs:
 
 ```c#
@@ -1194,27 +1215,6 @@ main programu Program.cs:
     }
 ```
 
-RemoveCompany
-
-```c#
-    private static void RemoveCompany(CompanyContext companyContext)
-    {
-        Console.Write("Podaj ID firmy do usunięcia: ");
-        var companyId = int.Parse(Console.ReadLine());
-        var company = companyContext.Companies.FirstOrDefault(comp => comp.CompanyID == companyId);
-    
-        if (company == null)
-        {
-            Console.WriteLine("Nie znaleziono firmy o podanym ID.");
-            return;
-        }
-    
-        companyContext.Companies.Remove(company);
-        companyContext.SaveChanges();
-        Console.WriteLine("Firma została usunięta.");
-    }
-```
-
 Po upewnieniu się, że wszystko działa poprawnie, dodajemy przykładowego Suppliera, a następnie Customera
 
 ![](img/img-zad5/supplier.png)
@@ -1228,7 +1228,7 @@ select * from Customers
 
 ![](img/img-zad5/11.png)
 
-Następnie dodajemy tą samą metodą wiele Supplierów oraz Customersów
+Następnie dodajemy tą samą metodą wiele Supplierów oraz Customerów
 
 ![](img/img-zad5/1.png)
 
@@ -1244,7 +1244,11 @@ Przykładowe działanie FindCompany:
 
 ![](img/img-zad5/find.png)
 
-Diagram tabeli Companies:
+Wynik wyszukiwania wsyzstkich Supplierów:
+
+![](img/img-zad5/select.png)
+
+Schemat bazy danych składa się tylko z tabeli Companies:
 
 ![](img/img-zad5/5.png)
 
@@ -1258,8 +1262,7 @@ pomocą pola Discriminator.
 
 # Zadanie f - Table-Per-Type:
 
-Implementacja tego zadania wygląda identycznie. Zmianie uległy jedynie dwie klasy: Customer oraz Supplier do 
-których dodalismy taką adnotacje przez nazwą klasy: [Table("Nazwa_KLasy")] 
+Implementacja tego zadania wygląda identycznie. Zmianie uległy jedynie dwie klasy: Customer oraz Supplier. Do nich dodalismy taką adnotacje przed nazwą klasy: [Table("nazwa_klasy")] 
 
 Supplier.cs:
 
@@ -1306,17 +1309,18 @@ Dodajemy Suppliera oraz Customera:
 
 ![](img/img-zad6/2.png)
 
-Wynik bazy danych po wykonaniu:  select * from Companies
+Wynik bazy danych po wykonaniu 'select * from Companies':
 
 ![](img/img-zad6/3.png)
 
-Wynika bazy danych po wykonaniu: select * from Customers
+Wynik bazy danych po wykonaniu 'select * from Customers':
 ![](img/img-zad6/4.png)
 
-
-Wynika bazy danych po wykonaniu: select * from Supplier
-
+Wynik bazy danych po wykonaniu 'select * from Supplier':
 ![](img/img-zad6/5.png)
+
+Wynik konsolowego wyszukiwania:
+![](img/img-zad6/findIN.png)
 
 Szkielet bazy danycy:
 
@@ -1333,31 +1337,29 @@ Schemat bazy danych:
 
 ### Opis strategi dziedziczenia: Table-Per-Hierarchy:
 
-Tworzona jest jedna duża tabela przechowująca wszystkie wspólne pola klas dziedziczących po niej jak i pola charakterystyczne dla
-poszczególnych typów dziedziczących. Jesli dany typ nie ma takiego pola, w takiej tabeli wpisywane jest null.
+- Tworzona jest jedna duża tabela przechowująca wszystkie wspólne pola klas dziedziczących po niej jak i pola charakterystyczne dla
+poszczególnych typów dziedziczących
+- Jesli dany typ nie ma takiego pola, w tym miejscu wpisywane jest null. Pole discriminator wskazuje na typ klasy dziedziczącej do rozróżnienia obiektów
 
 #### Zalety:
- - zmniejszenie wykonywania operacji join w porównaniu do operacji na tabelach wykorzystujących Table-Per-Type co może
+ - Zmniejszenie wykonywania operacji join w porównaniu do operacji na tabelach wykorzystujących Table-Per-Type co może
 prowadzić do zwiększenia wydajnosci zapytań
 
 #### Wady:
- - marnowanie wolnej pamięci na dużą ilosc pustych komórek - null (szczegolnie zawuazalne jesli kilka klas dziedziczy z jednej
+ - Marnowanie wolnej pamięci na dużą ilosc pustych komórek - null (szczegolnie zawuażalne jesli kilka klas dziedziczy z jednej
 głównej klasy)
+ - Zwiększenie liczby komórek o wartości null (charakterystycznych dla typów dziedziczących) prowadzi do tego, że baza danych staje się nieczytelny
 
 ### Opis strategi dziedziczenia: Table-Per-Type:
 
- - Tworzone jest kilka tabel zarówna dla klas dziedziczących jak i dla klasy po której dziedziczą te klasy. Każda klasa dziedzicząca
-zawiera indywidualne atrybuty natomiast klasa po której dziedziczą inne zawiera pola wspólne dla nich wszystkich.
+ - Tworzone są kilka tabel zarówno dla klas dziedziczących, jak i dla klasy po której dziedziczą te klasy. Każda klasa dziedzicząca
+zawiera indywidualne atrybuty, natomiast klasa bazowa zawiera wyłączmoe pola wspólne dla wszystkich klas dziedziczących
  - Tabele klas dziedziczących są łączone z tabelą klasy, z której dziedziczą, przy pomocy relacji 1 do 1
 
 #### Zalety:
  - Nie przechowujemy już pustych pól - null, dzieki czemu wszystkie nasze wartosci stanowią dane, które zostały wstępnie 
-wprowadzone do bazy,
- - W przypadku wielu klasy dziedziczących pozbywając się dużej ilosci nulli zwiekszamy czytelnosc naszej bazie,
+wprowadzone do bazy
+ - W przypadku wielu klas dziedziczących pozbywając się dużej ilosci nulli zwiekszamy czytelność bazy danych
 
 #### Wady:
-- Konieczne jest wykonywanie wielu operacji join (joinujemy za kazdym razem klasę po której dziedziczą inne klasy z
-klasą dziedziczącą jesli chcemy wyciagnac bardziej szczegolowe dane o konkretnym typie klasy)
-
-
-
+- Konieczne jest wykonywanie wielu operacji join (joinujemy za każdym razem klasę bazową z klasą dziedziczącą jeśli chcemy wyciągnąć bardziej szczegółowe dane o konkretnym typie klasy)

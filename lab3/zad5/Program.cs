@@ -74,12 +74,12 @@ internal class Program
         Console.WriteLine("Firma została usunięta.");
     }
 
-    private static Company? FindCompany(CompanyContext productContext)
+    private static Company? FindCompany(CompanyContext companyContext)
     {
         Console.Write("Podaj ID firmy do wyszukiwania: ");
         var companyId = int.Parse(Console.ReadLine());
 
-        var query = from comp in productContext.Companies
+        var query = from comp in companyContext.Companies
                     where comp.CompanyID == companyId
                     select comp;
 
@@ -146,9 +146,33 @@ internal class Program
                     break;
             }
         } while (!correctAnswer || choice == "Tak");
+
+        Console.WriteLine();
+
         ShowAllCompanies(companyContext);
+        Console.WriteLine();
         ShowAllSuppliers(companyContext);
+        Console.WriteLine();
         ShowAllCustomers(companyContext);
+
+        Console.WriteLine();
+
+        do
+        {
+            Console.WriteLine("Wyszukać firmę? (Tak/Nie)");
+            choice = Console.ReadLine();
+            switch (choice)
+            {
+                case "Tak":
+                    Company found = FindCompany(companyContext);
+                    Console.WriteLine(found);
+                    break;
+                case "Nie":
+                    correctAnswer = true;
+                    break;
+            }
+            Console.WriteLine();
+        } while (!correctAnswer || choice == "Tak");
 
     }
 }
