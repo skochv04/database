@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("zad6")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6028e50c45d0a500511e6679c32c653108c779db")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+60760dbfd0c0d698f08be31d60183e7472f9ba14")]
 [assembly: System.Reflection.AssemblyProductAttribute("zad6")]
 [assembly: System.Reflection.AssemblyTitleAttribute("zad6")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

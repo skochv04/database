@@ -16,8 +16,6 @@ Zostały dodane podstawowe klasy Product, ProdContext oraz Program, baza danych 
 
 ![](img/1.png)
 
-<!-- <div style="page-break-after: always;"></div> -->
-
 Kod:
 
 - Product.cs
@@ -87,6 +85,8 @@ Testowanie dodania nowego dostawcy i ustawienia dostawcy poprzednio wprowadzoneg
 
 ![](img/4.png)
 
+<div style="page-break-after: always;"></div>
+
 Wynik działania programu w postaci konsolowych komunikatów:
 
 ![](img/3.png)
@@ -94,6 +94,8 @@ Wynik działania programu w postaci konsolowych komunikatów:
 Sprawdżmy trwałość zmian za pomocą DataGrip:
 
 ![](img/5.png)
+
+<div style="page-break-after: always;"></div>
 
 Testowanie ustawienia dostawcy dla poprzednio wprowadzonego produktu. Wynik działania programu w postaci konsolowych komunikatów:
 
@@ -323,6 +325,8 @@ Wynik działania programu w postaci konsolowych komunikatów:
 
 ![](img/8.png)
 
+<div style="page-break-after: always;"></div>
+
 Sprawdżmy trwałość zmian za pomocą DataGrip. Tabela Product po dodaniu produktów:
 
 ![](img/9.png)
@@ -367,6 +371,8 @@ public class Supplier
 }
 ```
 
+<div style="page-break-after: always;"></div>
+
 - Program.cs (fragment starego kodu)
 
 ```c#
@@ -402,11 +408,8 @@ static void Main()
                 }
                 Console.WriteLine("");
         } while (!correctAnswer || choice == "Tak");
-
         ...
-
             supplier.Products.Add(product);
-
         ...
     }
 ```
@@ -431,12 +434,14 @@ Testowanie dodania nowych produktów i ustawienia ich dostawcy na nowo stworzone
 ![](img/10.png)
 
 Wynik działania programu w postaci konsolowych komunikatów:
-
-![](img/11.png)
+![](img/11a.png)
+![](img/11b.png)
 
 Sprawdżmy trwałość zmian za pomocą DataGrip. Tabela Product po dodaniu produktów:
 
 ![](img/12.png)
+
+<div style="page-break-after: always;"></div>
 
 Sprawdżmy trwałość zmian za pomocą DataGrip. Tabela Product po wprowadzeniu zmiany dostawcy:
 
@@ -475,9 +480,7 @@ public class Product
 static void Main()
     {   
         ...
-
             supplier.Products.Add(product);
-
         ...
     }
 ```
@@ -511,6 +514,8 @@ Schemat zmienionej bazy danych, wygenerowany przez DataGrip:
 
 ![](img/60.png)
 
+<div style="page-break-after: always;"></div>
+
 - Stwórmy kilka produktów 
 
 Tabela Products przed wywołaniem metody dodającej:
@@ -539,7 +544,9 @@ Wynik działania programu w postaci konsolowych komunikatów (trzecia transakcja
 
 ![](img/67.png)
 
-Przekonymy się w tym, że liczba produktów w sklepie została zmniejszona za pomocą DataGrip. Tabela Product po zakupieniu produktów:
+<div style="page-break-after: always;"></div>
+
+Przekonamy się, że liczba produktów w sklepie została zmniejszona za pomocą DataGrip. Tabela Product po zakupieniu produktów:
 
 ![](img/68.png)
 
@@ -555,9 +562,13 @@ Tabela InvoiceItems po przeprowadzeniu 3 transakcji:
 
 ![](img/71.png)
 
-- Faktury, w ramach których sprzedany został produkt
+<div style="page-break-after: always;"></div>
+
+- Faktury, w ramach których został sprzedany produkt
 
 ![](img/72.png)
+
+<div style="page-break-after: always;"></div>
 
 Kod:
 
@@ -987,6 +998,8 @@ internal abstract class Company
 }
 ```
 
+<div style="page-break-after: always;"></div>
+
 Supplier.cs:
 
 ```c#
@@ -1228,13 +1241,15 @@ select * from Customers
 
 ![](img/img-zad5/11.png)
 
-Następnie dodajemy tą samą metodą wiele Supplierów oraz Customerów
+Następnie dodajemy tą samą metodą wiele Supplierów oraz Customerów:
 
 ![](img/img-zad5/1.png)
 
 ...
 
 ![](img/img-zad5/2.png)
+
+<div style="page-break-after: always;"></div>
 
 Widok bazy danych:
 
@@ -1314,12 +1329,17 @@ Wynik bazy danych po wykonaniu 'select * from Companies':
 ![](img/img-zad6/3.png)
 
 Wynik bazy danych po wykonaniu 'select * from Customers':
+
 ![](img/img-zad6/4.png)
 
+<div style="page-break-after: always;"></div>
+
 Wynik bazy danych po wykonaniu 'select * from Supplier':
+
 ![](img/img-zad6/5.png)
 
 Wynik konsolowego wyszukiwania:
+
 ![](img/img-zad6/findIN.png)
 
 Szkielet bazy danycy:
