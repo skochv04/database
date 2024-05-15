@@ -1,13 +1,13 @@
-Sat May 11 16:22:15 CEST 2024 : Apache Derby Network Server - 10.16.1.1 - (1901046) started and ready to accept connections on port 1527
+Wed May 15 12:11:43 CEST 2024 : Apache Derby Network Server - 10.16.1.1 - (1901046) started and ready to accept connections on port 1527
 ----------------------------------------------------------------
-Sat May 11 16:22:25 CEST 2024:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.16.1.1 - (1901046): instance a816c00e-018f-6808-743b-00000ea1e3a8 
-on database directory C:\Users\wikto\Desktop\Everything\Studies\Term4\DataBases2\LSiwikJPALAB\Database\bin\WiktorDybalskiDatabase with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@6d06d69c 
-Loaded from file:/C:/Users/wikto/Desktop/Everything/Studies/Term4/DataBases2/LSiwikJPALAB/Database/lib/derby.jar
+Wed May 15 12:12:10 CEST 2024:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.16.1.1 - (1901046): instance a816c00e-018f-7bbc-8561-00000ef7e7d0 
+on database directory D:\AGH\4 semestr\BD\BD\lab4\Database\bin\WiktorDybalskiDatabase with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@2a139a55 
+Loaded from file:/D:/AGH/4%20semestr/BD/BD/lab4/Database/lib/derby.jar
 java.vendor=Oracle Corporation
-java.runtime.version=17.0.8+9-LTS-211
-user.dir=C:\Users\wikto\Desktop\Everything\Studies\Term4\DataBases2\LSiwikJPALAB\Database\bin
-os.name=Windows 11
+java.runtime.version=19.0.1+10-21
+user.dir=D:\AGH\4 semestr\BD\BD\lab4\Database\bin
+os.name=Windows 10
 os.arch=amd64
 os.version=10.0
 derby.system.home=null
