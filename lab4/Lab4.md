@@ -11,13 +11,13 @@
 
 # Wprowadzenie
 
-W trakcie części "przewodnikowej" została dodana klasa Product. Dodaliśmy przykładowe obiekty tej klasy do bazy danych z wykorzystaniem technologii hibernate’a, a następnie przekonaliśmy w tym, że są one widoczne w bazie danych.
+W trakcie części "przewodnikowej" została dodana klasa Product. Dodaliśmy przykładowe obiekty tej klasy do bazy danych z wykorzystaniem technologii hibernate’a, a następnie przekonaliśmy się w tym, że są one widoczne w bazie danych.
 
 ![](img/start1.jpg)
 
 ![](img/start2.jpg)
 
-# Zadanie 1
+# Zadanie 1 - wprowadzenie pojęcia Dostawcy
 
 Zostały dodane podstawowe klasy Product, Supplier oraz Program, baza danych Database.
 
@@ -114,7 +114,7 @@ class Supplier {
 }
 ```
 
-Main:
+- Main:
 
 ```java
 class Main {
@@ -297,7 +297,7 @@ Dodanie produktu:
 
 ![](img/z15.png)
 
-Wyszukanie ostatniego, dodanego dostawcy:
+Wyszukanie ostatniego dodanego dostawcy:
 
 ![](img/z14.png)
 
@@ -314,13 +314,13 @@ jest kluczem obcym w tabeli Product
 
 --- 
 
-# Zadanie 2
+# Zadanie 2 - odwrócenie relacji Supplier -> Product
 
-## Z tabelą łącznikową:
+## a) z tabelą łącznikową:
 
 W klasie main dodano do case przypadek zerowy dodający automatycznie kilka produktów oraz dostwaców:
 
-Main:
+- Main:
 
 ```java
 class Main {
@@ -497,7 +497,7 @@ class Main {
 W dostawcy zmienia się tylko to, że dodajemy listę produktów jakie dostarcza dany dostawca korzystając z tablicy
 łącznikowej
 
-Supplier:
+- Supplier
 
 ```java
 
@@ -559,19 +559,19 @@ class Supplier {
 
 ```
 
-W klasie Product usuniete zostalo pole:  Supplier supplier;
+W klasie Product zostało usunięte pole Supplier supplier;
 
 Rezultat wykonania case 0:
 
-Suppliers:
+- Suppliers
 
 ![](img/21.png)
 
-Products:
+- Products
 
 ![](img/22.png)
 
-SupplierProducts:
+- SupplierProducts
 
 ![](img/23.png)
 
@@ -579,9 +579,11 @@ Aktualny schemat bazy:
 
 ![](img/schemat2.png)
 
-## Bez tabeli:
+## b) bez tabeli łącznikowej:
 
-Nie zmienia się nic oprócz klasy Supplier:
+Nie zmienia się nic oprócz klasy Supplier. Tabela lącznikowa została zamieniona na listę produktów.
+
+- Suppliers
 
 ```java
 
@@ -635,17 +637,18 @@ class Supplier {
 }
 ```
 
-Baza danych jak widać optymalizuje sobie połączenie pomiędzy tabelami i przedstawia ją w taki sam sposób jak w przypadku
-relacji z zadania 2
+Baza danych optymalizuje sobie połączenie pomiędzy tabelami i przedstawia ją w taki sam sposób jak w przypadku
+relacji z zadania 1.
+
+Aktualny schemat bazy:
 
 ![](img/schemat2b.png)
 
-# Zadanie 3
+# Zadanie 3 - dwustronna relacja Supplier <----> Product
 
-Łączymy poprzednie rozwiązania czyli tworzymy Listę produktów w Supplier oraz wskazanie w klasie Product na swojego
-Suppliera
+Łączymy poprzednie rozwiązania, czyli w klasie Product będzie się znajdować ID Suppliera, który dostarcza ten produkt, a każdy Supplier będzie miał listę tych produktów, które dostarcza. 
 
-Zmiana w klasie Product:
+- Zmiana w klasie Product:
 
 ```java
 
@@ -654,7 +657,7 @@ Zmiana w klasie Product:
 private Supplier supplier;
 ```
 
-Zmiana w klasie Supplier:
+- Zmiana w klasie Supplier:
 
 ```java
 
@@ -662,7 +665,9 @@ Zmiana w klasie Supplier:
 private List<Product> products = new ArrayList<>();
 ```
 
-Dodanie podwójnej relacji w case 0 w klasie Main:
+W case 0 w klasie Main dodaliśmy podwójną relację.
+
+- Zmiana w klasie Main:
 
 ```java
 case 0:
@@ -680,73 +685,31 @@ Product product3 = new Product("Tablet", 30);
 Product product4 = new Product("Monitor", 15);
 Product product5 = new Product("Printer", 10);
 
-                    product1.
+product1.setSupplier(supplier1);
+product2.setSupplier(supplier1);
+roduct3.setSupplier(supplier2);
+product4.setSupplier(supplier2);
+product5.setSupplier(supplier3);
 
-setSupplier(supplier1);
-                    product2.
+supplier1.addProduct(product1);
+supplier1.addProduct(product2);
+supplier2.addProduct(product3);
+supplier2.addProduct(product4);
+supplier3.addProduct(product5);
 
-setSupplier(supplier1);
-                    product3.
+session.save(supplier1);
+session.save(supplier2);
+session.save(supplier3);
+session.save(product1);
+session.save(product2);
+session.save(product3);
+session.save(product4);
+session.save(product5);
 
-setSupplier(supplier2);
-                    product4.
+tx.commit();
+System.out.println("Product added successfully.");
 
-setSupplier(supplier2);
-                    product5.
-
-setSupplier(supplier3);
-
-                    supplier1.
-
-addProduct(product1);
-                    supplier1.
-
-addProduct(product2);
-
-                    supplier2.
-
-addProduct(product3);
-                    supplier2.
-
-addProduct(product4);
-
-                    supplier3.
-
-addProduct(product5);
-
-                    session.
-
-save(supplier1);
-                    session.
-
-save(supplier2);
-                    session.
-
-save(supplier3);
-
-                    session.
-
-save(product1);
-                    session.
-
-save(product2);
-                    session.
-
-save(product3);
-                    session.
-
-save(product4);
-                    session.
-
-save(product5);
-
-                    tx.
-
-commit();
-                    System.out.
-
-println("Product added successfully.");
-                    break;
+break;
 ```
 
 SQL logi po wykonaniu kroku 0:
@@ -854,14 +817,14 @@ Zoptymalizowany schemat bazy danych:
 
 ![](img/schemat3.png)
 
-Jak widać baza danych znowu zoptymalizowała sobie relacje pomiędzy tabelami
+Jak widać baza danych znowu zoptymalizowała sobie relacje pomiędzy tabelami, podobnie jak to było w Entity Framework.
 
 
-# Zadanie 4
+# Zadanie 4 - dodanie kategorii produktu
 
 Została stworzona relacja identyczna jak dla Suppliera czyli one-to-many
 
-Do klasy Product dodano:
+- Do klasy Product dodano:
 
 ```java
     @ManyToOne
@@ -874,7 +837,7 @@ public void setCategory(Category category) {
 }
 ```
 
-Category:
+- Category:
 
 ```java
 @Entity
@@ -915,7 +878,7 @@ class Category {
 
 ```
 
-Modyfikacja Maina:
+- Main po modyfikacji:
 
 ```java
 class Main {
@@ -1268,10 +1231,11 @@ Zoptymalizowany schemat bazy danych:
 ![](img/schemat4.png)
 
 
-# Zadanie 5:
+# Zadanie 5 - modelowanie relacji wiele-do-wielu:
 
-Product: 
+- Product
 
+```java
 @Entity
 @SequenceGenerator(name = "Products_SEQ")
 class Product{
@@ -1350,10 +1314,11 @@ class Product{
         invoices.add(invoice);
     }
 }
+```
 
+- Invoice
 
-Invoice:
-
+```java
 @Entity
 @SequenceGenerator(name = "Invoice_SEQ")
 public class Invoice {
@@ -1403,9 +1368,11 @@ public class Invoice {
                 '}';
     }
 }
+```
 
-Main:
+- Main
 
+```java
 class Main {
 private static SessionFactory sessionFactory = null;
 
@@ -1682,6 +1649,7 @@ private static SessionFactory sessionFactory = null;
         }
     }
 }
+```
 
 SQL Logi:
 ```sql
@@ -1844,6 +1812,7 @@ Products:
 ![](img/z52.png)
 
 Invoices:
+
 ![](img/z51.png)
 
 InvoiceProducts:
