@@ -9,11 +9,15 @@
 
 --- 
 
+# Wprowadzenie
+
+W trakcie części "przewodnikowej" została dodana klasa Product. Dodaliśmy przykładowe obiekty tej klasy do bazy danych z wykorzystaniem technologii hibernate’a, a następnie przekonaliśmy w tym, że są one widoczne w bazie danych.
+
+![](img/start1.jpg)
+
+![](img/start2.jpg)
+
 # Zadanie 1
-
-Zakończone z sukcesem na labolatorium
-
-# Zadanie 2
 
 Zostały dodane podstawowe klasy Product, Supplier oraz Program, baza danych Database.
 
@@ -275,35 +279,35 @@ class Main {
 
 Po dodaniu kilku produktów oraz dostawców nasza baza wygląda tak:
 
-![](Images/Main1.png)
+![](img/Main1.png)
 
 Products:
 
-![](Images/z11.png)
+![](img/z11.png)
 
 Suppliers:
 
-![](Images/z12.png)
+![](img/z12.png)
 
 Sprawdzamy następnie dodanie nowego produktu oraz wyszukanie ostatniego dostawcy:
 
 Dodanie produktu:
 
-![](Images/z13.png)
+![](img/z13.png)
 
-![](Images/z15.png)
+![](img/z15.png)
 
 Wyszukanie ostatniego, dodanego dostawcy:
 
-![](Images/z14.png)
+![](img/z14.png)
 
 Ustawienie ostatnio dodanego produktu(id=5052) ostatnio dodanego suppliera:
 
-![](Images/z16.png)
+![](img/z16.png)
 
 Natomiast diagram naszej bazy wygląda tak:
 
-![](Images/schemat1.png)
+![](img/schemat1.png)
 
 Analizując schemat widać, że baza danych poprawnie zoptymalizowała sobie naszą relację Product-Supplier a sam SupplierID
 jest kluczem obcym w tabeli Product
@@ -561,19 +565,19 @@ Rezultat wykonania case 0:
 
 Suppliers:
 
-![](Images/21.png)
+![](img/21.png)
 
 Products:
 
-![](Images/22.png)
+![](img/22.png)
 
 SupplierProducts:
 
-![](Images/23.png)
+![](img/23.png)
 
 Aktualny schemat bazy:
 
-![](Images/schemat2.png)
+![](img/schemat2.png)
 
 ## Bez tabeli:
 
@@ -634,7 +638,7 @@ class Supplier {
 Baza danych jak widać optymalizuje sobie połączenie pomiędzy tabelami i przedstawia ją w taki sam sposób jak w przypadku
 relacji z zadania 2
 
-![](Images/schemat2b.png)
+![](img/schemat2b.png)
 
 # Zadanie 3
 
@@ -840,15 +844,15 @@ values
 
 Products:
 
-![](Images/z31.png)
+![](img/z31.png)
 
 Suppliers:
 
-![](Images/z32.png)
+![](img/z32.png)
 
 Zoptymalizowany schemat bazy danych:
 
-![](Images/schemat3.png)
+![](img/schemat3.png)
 
 Jak widać baza danych znowu zoptymalizowała sobie relacje pomiędzy tabelami
 
@@ -1138,11 +1142,11 @@ class Main {
 ```
 Products:
 
-![](Images/z41.png)
+![](img/z41.png)
 
 Categories:
 
-![](Images/z42.png)
+![](img/z42.png)
 
 SQL Logi po wykonaniu z main case 0:
 
@@ -1253,15 +1257,15 @@ Product added successfully.
 
 Produkty z wybranej kategorii:
 
-![](Images/z43.png)
+![](img/z43.png)
 
 Kategoria danego produktu:
 
-![](Images/z44.png)
+![](img/z44.png)
 
 Zoptymalizowany schemat bazy danych:
 
-![](Images/schemat4.png)
+![](img/schemat4.png)
 
 
 # Zadanie 5:
@@ -1837,26 +1841,26 @@ Product added successfully.
 
 Products:
 
-![](Images/z52.png)
+![](img/z52.png)
 
 Invoices:
-![](Images/z51.png)
+![](img/z51.png)
 
 InvoiceProducts:
 
-![](Images/z53.png)
+![](img/z53.png)
 
 Produkty na fakturze o konkretnym numerze:
 
-![](Images/z55.png)
+![](img/z55.png)
 
 Faktury na których został sprzedany dany produkt:
 
-![](Images/z54.png)
+![](img/z54.png)
 
 Schemat bazy danych:
 
-![](Images/schemat5.png)
+![](img/schemat5.png)
 
 
 # Zadanie 6 - Table-Per-Type:
