@@ -17,6 +17,8 @@ W trakcie części "przewodnikowej" została dodana klasa Product. Dodaliśmy pr
 
 ![](img/start2.jpg)
 
+<div style="page-break-after: always;"></div>
+
 --- 
 
 # Zadanie 1 - wprowadzenie pojęcia Dostawcy
@@ -28,7 +30,6 @@ Kod:
 - Product:
 
 ```java
-
 @Entity
 class Product {
 
@@ -64,7 +65,6 @@ class Product {
 - Supplier:
 
 ```java
-
 @Entity
 class Supplier {
 
@@ -294,6 +294,8 @@ Suppliers:
 
 ![](img/z12.png)
 
+<div style="page-break-after: always;"></div>
+
 Sprawdzamy następnie dodanie nowego produktu oraz wyszukanie ostatniego dostawcy:
 
 Dodanie produktu:
@@ -310,12 +312,16 @@ Ustawienie ostatnio dodanego produktu(id=5052) ostatnio dodanego suppliera:
 
 ![](img/z16.png)
 
-Natomiast diagram naszej bazy wygląda tak:
+<div style="page-break-after: always;"></div>
+
+Diagram naszej bazy wygląda tak:
 
 ![](img/schemat1.png)
 
 Analizując schemat widać, że baza danych poprawnie zoptymalizowała sobie naszą relację Product-Supplier a sam SupplierID
 jest kluczem obcym w tabeli Product
+
+<div style="page-break-after: always;"></div>
 
 --- 
 
@@ -505,7 +511,6 @@ W dostawcy zmienia się tylko to, że dodajemy listę produktów jakie dostarcza
 - Supplier
 
 ```java
-
 @Table(name = "Suppliers")
 @Entity
 @SequenceGenerator(name = "Supplier_SEQ")
@@ -579,6 +584,8 @@ Rezultat wykonania case 0:
 
 ![](img/22.png)
 
+<div style="page-break-after: always;"></div>
+
 - SupplierProducts
 
 ![](img/23.png)
@@ -593,9 +600,7 @@ Nie zmienia się nic oprócz klasy Supplier. Tabela lącznikowa została zamieni
 
 - Suppliers
 
-```java
-
-@Entity
+```java@Entity
 @SequenceGenerator(name = "Supplier_SEQ")
 class Supplier {
 
@@ -612,33 +617,26 @@ class Supplier {
 
     public Supplier() {
     }
-
     Supplier(String companyName, String street, String city) {
         this.companyName = companyName;
         this.street = street;
         this.city = city;
     }
-
     int getSupplierID() {
         return supplierID;
     }
-
     String getCompanyName() {
         return companyName;
     }
-
     String getStreet() {
         return street;
     }
-
     String getCity() {
         return city;
     }
-
     List<Product> getProducts() {
         return products;
     }
-
     void addProduct(Product product) {
         this.products.add(product);
     }
@@ -655,6 +653,8 @@ Aktualny schemat bazy:
 
 ![](img/schemat2b.png)
 
+<div style="page-break-after: always;"></div>
+
 --- 
 
 # Zadanie 3 - dwustronna relacja Supplier <----> Product
@@ -663,9 +663,7 @@ Aktualny schemat bazy:
 
 - Zmiana w klasie Product:
 
-```java
-
-@ManyToOne
+```java@ManyToOne
 @JoinColumn(name = "supplierID")
 private Supplier supplier;
 ```
@@ -673,7 +671,6 @@ private Supplier supplier;
 - Zmiana w klasie Supplier:
 
 ```java
-
 @OneToMany(mappedBy = "supplier")
 private List<Product> products = new ArrayList<>();
 ```
@@ -724,6 +721,7 @@ System.out.println("Product added successfully.");
 
 break;
 ```
+<div style="page-break-after: always;"></div>
 
 - SQL logi po wykonaniu kroku 0:
 --------------------
@@ -744,7 +742,6 @@ What do you want to do?:
 Hibernate:
 
 ```sql    
-
 values
     next value for Supplier_SEQ
     Hibernate:
@@ -831,6 +828,8 @@ Zoptymalizowany schemat bazy danych:
 ![](img/schemat3.png)
 
 Jak widać baza danych znowu zoptymalizowała sobie relacje pomiędzy tabelami, podobnie jak to było w Entity Framework.
+
+<div style="page-break-after: always;"></div>
 
 ---
 
@@ -1235,17 +1234,25 @@ Hibernate:
 Product added successfully.    
 ```
 
+<div style="page-break-after: always;"></div>
+
 Produkty z wybranej kategorii:
 
 ![](img/z43.png)
+
+<div style="page-break-after: always;"></div>
 
 Kategoria danego produktu:
 
 ![](img/z44.png)
 
+<div style="page-break-after: always;"></div>
+
 Zoptymalizowany schemat bazy danych:
 
 ![](img/schemat4.png)
+
+<div style="page-break-after: always;"></div>
 
 ---
 
@@ -1847,17 +1854,25 @@ InvoiceProducts:
 
 ![](img/z53.png)
 
+<div style="page-break-after: always;"></div>
+
 Produkty na fakturze o konkretnym numerze:
 
 ![](img/z55.png)
+
+<div style="page-break-after: always;"></div>
 
 Faktury na których został sprzedany dany produkt:
 
 ![](img/z54.png)
 
+<div style="page-break-after: always;"></div>
+
 Schemat bazy danych:
 
 ![](img/schemat5.png)
+
+<div style="page-break-after: always;"></div>
 
 ---
 
@@ -2493,6 +2508,7 @@ Hibernate:
         (?, ?)
 Product added successfully.
 ```
+<div style="page-break-after: always;"></div>
 
 Products:
 
@@ -2514,11 +2530,15 @@ Faktury na których został sprzedany dany produkt:
 
 ![](img/z64.png)
 
+<div style="page-break-after: always;"></div>
+
 Schemat bazy danych:
 
 ![](img/schemat6.png)
 
 Jak widać, schemat nie różni się od pokazanego w zadaniu 5 (chyba że nazwami niektórych elementów).
+
+<div style="page-break-after: always;"></div>
 
 ---
 
@@ -2580,7 +2600,9 @@ Wykorzystanie mechanizmu kaskadowego spowoduje, ze przy próbie utrwalenia Invoi
     entityManager.persist(invoice2);
 ```
 
-## Spróbujmy przetestować zapisywanie do bazy nowych Invoce`ów nie ex plicite, a przez dodawanie ich w ramach Products
+<div style="page-break-after: always;"></div>
+
+### Spróbujmy przetestować zapisywanie do bazy nowych Invoce`ów nie ex plicite, a przez dodawanie ich w ramach Products
 Kod dla takiego testu:
 
 - Main (fragment nowego kodu)
@@ -2609,15 +2631,19 @@ Produkty na fakturze o konkretnym numerze:
 
 ![](img/z65.png)
 
+<div style="page-break-after: always;"></div>
+
 Faktury na których został sprzedany dany produkt:
 
 ![](img/z64.png)
+
+<div style="page-break-after: always;"></div>
 
 Schemat bazy danych:
 
 ![](img/schemat6.png)
 
-## Spróbujmy przetestować zapisywanie do bazy nowych produktów nie ex plicite, a przez dodawanie ich do Invoices
+### Spróbujmy przetestować zapisywanie do bazy nowych produktów nie ex plicite, a przez dodawanie ich do Invoices
 Kod dla takiego testu:
 
 - Main (fragment nowego kodu)
@@ -2635,6 +2661,8 @@ Invoices:
 
 ![](img/z51.png)
 
+<div style="page-break-after: always;"></div>
+
 InvoiceProducts:
 
 ![](img/z63.png)
@@ -2643,9 +2671,13 @@ Produkty na fakturze o konkretnym numerze:
 
 ![](img/z65.png)
 
+<div style="page-break-after: always;"></div>
+
 Faktury na których został sprzedany dany produkt:
 
 ![](img/z64.png)
+
+<div style="page-break-after: always;"></div>
 
 Schemat bazy danych:
 
@@ -2883,6 +2915,8 @@ Product added successfully.
 --------------------
 ```
 
+<div style="page-break-after: always;"></div>
+
 ---
 
 # Zadanie 8 - embedded class
@@ -2997,6 +3031,8 @@ Zobaczmy jak zmiany są reprezentowane w bazie na przykładowym zestawie danych 
 Suppliers:
 
 ![](img/z81.png)
+
+<div style="page-break-after: always;"></div>
 
 Schemat bazy danych:
 
@@ -3241,6 +3277,8 @@ Product added successfully.
 --------------------
 ```
 
+<div style="page-break-after: always;"></div>
+
 ## c-d) mapowanie danych adresowych do osobnej tabeli
 
 Zgodnie z poleceniem, zrezegnowaliśmy z klasy Address i umieściliśmy dane adresowe w klasie Supplier. Wskazaliśmy, że to będzie nowa osobna tabela.
@@ -3303,6 +3341,8 @@ class Supplier {
     public String toString() { return companyName; }
 }
 ```
+
+<div style="page-break-after: always;"></div>
 
 W wyniku takiej zmiany powstała nowa klasa-tabela Address:
 
@@ -3586,6 +3626,8 @@ Product added successfully.
 --------------------
 ```
 
+<div style="page-break-after: always;"></div>
+
 ---
 
 # Zadanie 9 - dziedziczenie
@@ -3645,7 +3687,6 @@ public abstract class Company {
 
 ```java
 package zad9;
-
 import jakarta.persistence.*;
 
 @Entity
@@ -3796,6 +3837,8 @@ Hibernate:
     values
         (?, ?, ?, ?, ?, ?)
 ```
+
+<div style="page-break-after: always;"></div>
 
 W bazie danych zostały utworzone dwie tabeli - Customer i Supplier.
 
@@ -3955,6 +3998,8 @@ Customer:
 Schemat bazy danych:
 
 ![](img/z99.png)
+
+<div style="page-break-after: always;"></div>
 
 ## c) Single Table
 
