@@ -3316,7 +3316,7 @@ Schemat bazy danych:
 
 ![](img/z85.png)
 
-Pojawiła się tabela Address, ponieważ zmapowaliśmy do niej jawnie niektóre polaa z Supplier.
+Pojawiła się tabela Address, ponieważ zmapowaliśmy do niej jawnie niektóre pola z Supplier.
 
 - SQL logi
 
@@ -3590,3 +3590,459 @@ Product added successfully.
 
 # Zadanie 9 - dziedziczenie
 
+W ramach tego zadania rozważyliśmy 3 podejścia dziedziczenia w Hibernate/JPA.
+
+## a) Type Per Class
+
+Zaimplementowane klasy:
+
+- Company
+
+```java
+package zad9;
+
+import jakarta.persistence.*;
+
+@Entity
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public abstract class Company {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "Company_GEN")
+    @SequenceGenerator(name = "Company_GEN", sequenceName = "Company_SEQ")
+    private int companyID;
+    private String companyName;
+    private String street;
+    private String city;
+    private String zipCode;
+    public Company() {}
+    public Company(String companyName, String street, String city, String zipCode)
+    {
+        this.companyName = companyName;
+        this.zipCode = zipCode;
+        this.street = street;
+        this.city = city;
+    }
+    @Override
+    public String toString() {
+        return companyName;
+    }
+    public String getCompanyName() {
+        return companyName;
+    }
+    public String getStreet() {
+        return street;
+    }
+    public String getCity() {
+        return city;
+    }
+    public String getZipCode() {
+        return zipCode;
+    }
+}
+```
+
+- Supplier
+
+```java
+package zad9;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Supplier extends Company {
+    private String bankAccountNumber;
+    public Supplier() {}
+    public Supplier(String companyName, String street, String city, String
+            zipCode, String bankAccountNumber) {
+        super(companyName, street, city, zipCode);
+        this.bankAccountNumber = bankAccountNumber;
+    }
+}
+
+```
+
+- Customer
+
+```java
+package zad9;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Customer extends Company {
+    private double discount; // %
+    public Customer() {}
+    public Customer(String companyName, String street, String city, String
+            zipCode, double discount) {
+        super(companyName, street, city, zipCode);
+        this.discount = discount;
+    }
+}
+```
+
+- Main
+
+```java
+package zad9;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.Persistence;
+import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
+
+import java.util.List;
+import java.util.Scanner;
+import java.util.Set;
+
+
+class Main {
+    private static final EntityManagerFactory emf;
+
+    static {
+        try {
+            emf = Persistence.createEntityManagerFactory("derby");
+        } catch (Throwable ex) {
+            throw new ExceptionInInitializerError(ex);
+        }
+    }
+    public static EntityManager getEntityManager() {
+        return emf.createEntityManager();
+    }
+
+    public static void main(String[] args) {
+        EntityManager em = getEntityManager();
+        EntityTransaction etx = em.getTransaction();
+        
+        etx.begin();
+        Customer customer1 = new Customer("Client #1", "Short street", "Zlin",
+                "27-001", 0.0);
+        Customer customer2 = new Customer("Client #2", "29 listopada", "Gdynia", "35-693",
+                2.0);
+        Supplier supplier1 = new Supplier("Supplier #1", "Rondo Kosmiczne",
+                "Warsaw", "40-367", "687453214569874536541236");
+        Supplier supplier2 = new Supplier("Supplier #2", "Oil street", "Kyiv", "10-234",
+                "98745632564632158963456");
+        em.persist(customer1);
+        em.persist(customer2);
+        em.persist(supplier1);
+        em.persist(supplier2);
+        etx.commit();
+        em.close();
+    }
+}
+```
+
+- SQL logi
+
+```sql
+Hibernate: 
+    create sequence Company_SEQ start with 1 increment by 50
+Hibernate: 
+    create table Customer (
+        companyID integer not null,
+        discount float(52) not null,
+        city varchar(255),
+        companyName varchar(255),
+        street varchar(255),
+        zipCode varchar(255),
+        primary key (companyID)
+    )
+Hibernate: 
+    create table Supplier (
+        companyID integer not null,
+        bankAccountNumber varchar(255),
+        city varchar(255),
+        companyName varchar(255),
+        street varchar(255),
+        zipCode varchar(255),
+        primary key (companyID)
+    )
+Hibernate: 
+    
+values
+    next value for Company_SEQ
+Hibernate: 
+    
+values
+    next value for Company_SEQ
+Hibernate: 
+    insert 
+    into
+        Customer
+        (city, companyName, street, zipCode, discount, companyID) 
+    values
+        (?, ?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Customer
+        (city, companyName, street, zipCode, discount, companyID) 
+    values
+        (?, ?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Supplier
+        (city, companyName, street, zipCode, bankAccountNumber, companyID) 
+    values
+        (?, ?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Supplier
+        (city, companyName, street, zipCode, bankAccountNumber, companyID) 
+    values
+        (?, ?, ?, ?, ?, ?)
+```
+
+W bazie danych zostały utworzone dwie tabeli - Customer i Supplier.
+
+Supplier:
+
+![](img/z91.png)
+
+Customer:
+
+![](img/z92.png)
+
+Schemat bazy danych:
+
+![](img/z93.png)
+
+
+## b) Joined
+
+W tym podejściu zmieniliśmy jedynie dekorator klasy Company na odpowiedni danej strategii.
+
+- Company (fragment starego kodu)
+
+```java
+@Entity
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public abstract class Company {
+...
+}
+```
+
+- Company (fragment nowego kodu)
+
+```java
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
+public abstract class Company {
+...
+}
+```
+
+- SQL logi
+
+```sql
+Hibernate: 
+    create sequence Company_SEQ start with 1 increment by 50
+Hibernate: 
+    create table Company (
+        companyID integer not null,
+        city varchar(255),
+        companyName varchar(255),
+        street varchar(255),
+        zipCode varchar(255),
+        primary key (companyID)
+    )
+Hibernate: 
+    create table Customer (
+        companyID integer not null,
+        discount float(52) not null,
+        primary key (companyID)
+    )
+Hibernate: 
+    create table Supplier (
+        companyID integer not null,
+        bankAccountNumber varchar(255),
+        primary key (companyID)
+    )
+Hibernate: 
+    alter table Customer 
+       add constraint FKn7fvr687iixps0s6i5casr6f3 
+       foreign key (companyID) 
+       references Company
+Hibernate: 
+    alter table Supplier 
+       add constraint FKpinunrb4v5p4aemt2k4fnkjp8 
+       foreign key (companyID) 
+       references Company
+Hibernate: 
+    
+values
+    next value for Company_SEQ
+Hibernate: 
+    
+values
+    next value for Company_SEQ
+Hibernate: 
+    insert 
+    into
+        Company
+        (city, companyName, street, zipCode, companyID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Customer
+        (discount, companyID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Company
+        (city, companyName, street, zipCode, companyID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Customer
+        (discount, companyID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Company
+        (city, companyName, street, zipCode, companyID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Supplier
+        (bankAccountNumber, companyID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Company
+        (city, companyName, street, zipCode, companyID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Supplier
+        (bankAccountNumber, companyID) 
+    values
+        (?, ?)
+```
+
+W bazie danych zostałe utworzone trzy tabele - Company, Customer oraz Supplier, czyli każda tabela przedstawia osobną klasę.
+
+Company:
+
+![](img/z96.png)
+
+Supplier:
+
+![](img/z97.png)
+
+Customer:
+
+![](img/z98.png)
+
+Schemat bazy danych:
+
+![](img/z99.png)
+
+## c) Single Table
+
+W tym podejściu zmieniliśmy jedynie dekorator klasy Company na odpowiedni danej strategii.
+
+- Company (fragment starego kodu)
+
+```java
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
+public abstract class Company {
+...
+}
+```
+
+- Company (fragment nowego kodu)
+
+```java
+@Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+public abstract class Company {
+...
+}
+```
+
+- SQL logi
+
+```sql
+Hibernate: 
+    create table Company (
+        companyID integer not null,
+        discount float(52),
+        DTYPE varchar(31) not null,
+        bankAccountNumber varchar(255),
+        city varchar(255),
+        companyName varchar(255),
+        street varchar(255),
+        zipCode varchar(255),
+        primary key (companyID)
+    )
+Hibernate: 
+    
+values
+    next value for Company_SEQ
+Hibernate: 
+    
+values
+    next value for Company_SEQ
+Hibernate: 
+    insert 
+    into
+        Company
+        (city, companyName, street, zipCode, discount, DTYPE, companyID) 
+    values
+        (?, ?, ?, ?, ?, 'Customer', ?)
+Hibernate: 
+    insert 
+    into
+        Company
+        (city, companyName, street, zipCode, discount, DTYPE, companyID) 
+    values
+        (?, ?, ?, ?, ?, 'Customer', ?)
+Hibernate: 
+    insert 
+    into
+        Company
+        (city, companyName, street, zipCode, bankAccountNumber, DTYPE, companyID) 
+    values
+        (?, ?, ?, ?, ?, 'Supplier', ?)
+Hibernate: 
+    insert 
+    into
+        Company
+        (city, companyName, street, zipCode, bankAccountNumber, DTYPE, companyID) 
+    values
+        (?, ?, ?, ?, ?, 'Supplier', ?)
+```
+
+W bazie danych została utworzona jedna tabela - Company, czyli ma ona nulle na polach Supplier`a, jeśli dany object jest Customer'em i tak samo w drugą stronę.
+
+Company:
+
+![](img/z94.png)
+
+Schemat bazy danych:
+
+![](img/z95.png)
+
+---
+
+Każde z pokazanych podejść dziedziczenia ma swoje wade i zalety. Type per class - to sposób, gdy nie jest tworzona żadna macierzysta struktura, a więc może się okazać że baza będzie miała bardzo dużo powielanych danych. Jest to wygodna struktura dostępu do konkretnych danych, ale słabo nadaje się do polimorfizmu. Natomiast, Joined Table ma prejżystą stukturę tabel, ponieważ w tym podejściu są tworzone tabeli dla każdej klasy hierarchii, włącznie z abstrakcyjnymi. Nie jest to najlepszy wybór do polimorfizmu, utrudnia się również dostęp do danych poszczególnych klas. Z kolei Single Table jest lepszym wyborem dla dostępu do klas dziedziczących i modelowania polimorfizmu, natomiast schemat takiej bazy w przypadku rozszerzenia może zawierać ogromną ilość nulli w specyficznych dla danego typu dziedziczącego.
