@@ -39,4 +39,7 @@ class Category {
     public void addProducts(Product product) {
         products.add(product);
     }
+
+    @Override
+    public String toString() { return name; }
 }

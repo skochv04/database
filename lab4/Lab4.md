@@ -111,6 +111,9 @@ class Supplier {
     public void setCity(String city) {
         this.city = city;
     }
+
+    @Override
+    public String toString() { return companyName; }
 }
 ```
 
@@ -554,6 +557,9 @@ class Supplier {
     void addProduct(Product product) {
         this.products.add(product);
     }
+
+    @Override
+    public String toString() { return companyName; }
 }
 
 
@@ -634,6 +640,9 @@ class Supplier {
     void addProduct(Product product) {
         this.products.add(product);
     }
+
+    @Override
+    public String toString() { return companyName; }
 }
 ```
 
@@ -874,6 +883,9 @@ class Category {
     public void addProducts(Product product) {
         products.add(product);
     }
+
+    @Override
+    public String toString() { return name; }
 }
 
 ```
@@ -1066,8 +1078,8 @@ class Main {
                         for (Product p : filteredProducts) {
                             System.out.print("Product ID: " + p.getProductID());
                             System.out.print(", Name: " + p.getProductName());
-                            System.out.println(", Supplier: " + p.getSupplier());
-                            System.out.println(", Category: " + p.getCategory());
+                            System.out.println(", Supplier: " + p.getSupplier().getName());
+                            System.out.println(", Category: " + p.getCategory().getName());
                         }
                     } else {
                         System.out.println("No products found.");
@@ -1233,10 +1245,8 @@ Zoptymalizowany schemat bazy danych:
 
 # Zadanie 5 - modelowanie relacji wiele-do-wielu:
 
- - Tworzymy klasę Invoice reprezentującą fakturę konkretnego zamówienia, a następnie ustawiamy realcje wielu do wielu z tabelą Products. 
+ - Tworzymy klasę Invoice reprezentującą fakturę konkretnego zamówienia, a następnie ustawiamy realcję wiele do wielu z tabelą Products. 
  - Modelujemy relacje dodając do klasy Products HashSet z adnotacją ManyToMany reprezentujący w jakich fakturach znajduje się dany produkt
-
-
 
 - Product:
 
@@ -1322,7 +1332,7 @@ class Product{
 ```
 
 
-  Z kolei w klasie Invoice tworzymy HashSet z adnotacjami ManyToMany oraz JoinTable aby baza danych poprawnie powiązała relację ManyToMany tworząc pomocniczą tabelę Invoice_Products (jest to łącznik pomiędzy dwoma tabelami, który w relacjach ManyToMany jest niezbędny) 
+Z kolei w klasie Invoice tworzymy HashSet z adnotacjami ManyToMany oraz JoinTable aby baza danych poprawnie powiązała relację ManyToMany tworząc pomocniczą tabelę Invoice_Products (jest to łącznik pomiędzy dwoma tabelami, który w relacjach ManyToMany jest niezbędny) 
 
 
 - Invoice
@@ -1378,6 +1388,8 @@ public class Invoice {
     }
 }
 ```
+
+W klasie main dodaliśmy kilka Invoices, w ramach których zostałe sprzedane produkty.
 
 - Main
 
@@ -1661,6 +1673,7 @@ private static SessionFactory sessionFactory = null;
 ```
 
 SQL Logi:
+
 ```sql
 Hibernate: 
     

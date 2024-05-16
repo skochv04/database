@@ -47,4 +47,7 @@ class Supplier {
     void addProduct(Product product) {
         this.products.add(product);
     }
+
+    @Override
+    public String toString() { return companyName; }
 }
