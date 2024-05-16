@@ -2887,6 +2887,705 @@ Product added successfully.
 
 # Zadanie 8 - embedded class
 
+## a-b) dodanie "wbudowanego" adresu w klasę dostawcy
+
+Została stworzona klasa Address, którą "wbudowaliśmy" do klasy Supplier przy pomocy podejścia Embedded classes.
+
+- Address
+
+```java
+package zad1;
+
+import jakarta.persistence.*;
+
+@Embeddable
+class Address {
+
+    private String street;
+    private String city;
+
+    public Address() {}
+
+    Address(String street, String city) {
+        this.street = street;
+        this.city = city;
+    }
+
+    String getStreet() {
+        return street;
+    }
+    String getCity() {
+        return city;
+    }
+
+    public void setStreet(String street) {
+        this.street = street;
+    }
+    public void setCity(String city) {
+        this.city = city;
+    }
+    @Override
+    public String toString() { return getCity() + ", " + getStreet(); }
+}
+```
+
+- Supplier
+
+```java
+package zad1;
+
+import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@SequenceGenerator(name = "Supplier_SEQ")
+class Supplier {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "Supplier_SEQ")
+    private int supplierID;
+
+    private String companyName;
+    @Embedded
+    private Address address;
+
+    @OneToMany(mappedBy = "supplier")
+    private List<Product> products = new ArrayList<>();
+
+    public Supplier() {}
+
+    Supplier(String companyName, String street, String city) {
+        this.companyName = companyName;
+        this.address = new Address(street, city);
+    }
+
+    Supplier(String companyName, Address address) {
+        this.companyName = companyName;
+        this.address = address;
+    }
+
+    int getSupplierID() {
+        return supplierID;
+    }
+    String getCompanyName() {
+        return companyName;
+    }
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+    public Address getAddress() {
+        return address;
+    }
+
+    List<Product> getProducts() {
+        return products;
+    }
+    void addProduct(Product product) {
+        this.products.add(product);
+    }
+
+    @Override
+    public String toString() { return companyName; }
+}
+```
+
+Jak widać, zmieniliśmy konstruktory dla klasy Supplier, dzięki czemu nie musieliśmy zmieniać funkcji Main.
+Zobaczmy jak zmiany są reprezentowane w bazie na przykładowym zestawie danych jak wcześniej.
+
+Suppliers:
+
+![](img/z81.png)
+
+Schemat bazy danych:
+
+![](img/z82.png)
+
+Podobnie jak w poprzednich zadaniach, schemat bazy danych został zoptymalizowany i nie widzimy tabeli Address.
+
+- SQL logi
+
+```sql
+Hibernate: 
+    create sequence Categories_SEQ start with 1 increment by 50
+Hibernate: 
+    create sequence Invoice_SEQ start with 1 increment by 50
+Hibernate: 
+    create sequence Products_SEQ start with 1 increment by 50
+Hibernate: 
+    create sequence Supplier_SEQ start with 1 increment by 50
+Hibernate: 
+    create table Category (
+        categoryID integer not null,
+        name varchar(255),
+        primary key (categoryID)
+    )
+Hibernate: 
+    create table Invoice (
+        invoiceID integer not null,
+        invoiceNumber integer not null,
+        quantity integer not null,
+        primary key (invoiceID)
+    )
+Hibernate: 
+    create table Invoice_Product (
+        invoices_invoiceID integer not null,
+        products_productID integer not null,
+        primary key (invoices_invoiceID, products_productID)
+    )
+Hibernate: 
+    create table Product (
+        category_categoryID integer,
+        productID integer not null,
+        supplier_supplierID integer,
+        unitsInStock integer not null,
+        productName varchar(255),
+        primary key (productID)
+    )
+Hibernate: 
+    create table Supplier (
+        supplierID integer not null,
+        city varchar(255),
+        companyName varchar(255),
+        street varchar(255),
+        primary key (supplierID)
+    )
+Hibernate: 
+    alter table Invoice_Product 
+       add constraint FK2mn08nt19nrqagr12grh5uho0 
+       foreign key (products_productID) 
+       references Product
+Hibernate: 
+    alter table Invoice_Product 
+       add constraint FKthlx5t7fv55fgsfp7ivt4fj6u 
+       foreign key (invoices_invoiceID) 
+       references Invoice
+Hibernate: 
+    alter table Product 
+       add constraint FK987q0koesbyk7oqky7lg431xr 
+       foreign key (category_categoryID) 
+       references Category
+Hibernate: 
+    alter table Product 
+       add constraint FK6em1ebdcyqbgxmglei6wanchp 
+       foreign key (supplier_supplierID) 
+       references Supplier
+--------------------
+What do you want to do?: 
+0. Add template
+1. Add product
+2. Add supplier
+3. Show products
+4. Show suppliers
+5. Show category
+6. Show products with Category
+7. Show Sold products on InvoiceID: 
+8. Show Invoices that product had been sold: 
+9. Show Product Category
+10. Exit
+--------------------
+0
+Hibernate: 
+    
+values
+    next value for Supplier_SEQ
+Hibernate: 
+    
+values
+    next value for Supplier_SEQ
+Hibernate: 
+    
+values
+    next value for Categories_SEQ
+Hibernate: 
+    
+values
+    next value for Categories_SEQ
+Hibernate: 
+    
+values
+    next value for Products_SEQ
+Hibernate: 
+    
+values
+    next value for Invoice_SEQ
+Hibernate: 
+    
+values
+    next value for Products_SEQ
+Hibernate: 
+    
+values
+    next value for Invoice_SEQ
+Hibernate: 
+    insert 
+    into
+        Supplier
+        (city, street, companyName, supplierID) 
+    values
+        (?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Supplier
+        (city, street, companyName, supplierID) 
+    values
+        (?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Supplier
+        (city, street, companyName, supplierID) 
+    values
+        (?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Category
+        (name, categoryID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Category
+        (name, categoryID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Category
+        (name, categoryID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Product
+        (category_categoryID, productName, supplier_supplierID, unitsInStock, productID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice
+        (invoiceNumber, quantity, invoiceID) 
+    values
+        (?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Product
+        (category_categoryID, productName, supplier_supplierID, unitsInStock, productID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Product
+        (category_categoryID, productName, supplier_supplierID, unitsInStock, productID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Product
+        (category_categoryID, productName, supplier_supplierID, unitsInStock, productID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice
+        (invoiceNumber, quantity, invoiceID) 
+    values
+        (?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Product
+        (category_categoryID, productName, supplier_supplierID, unitsInStock, productID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice_Product
+        (invoices_invoiceID, products_productID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice_Product
+        (invoices_invoiceID, products_productID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice_Product
+        (invoices_invoiceID, products_productID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice_Product
+        (invoices_invoiceID, products_productID) 
+    values
+        (?, ?)
+Product added successfully.
+--------------------
+```
+
+## c-d) mapowanie danych adresowych do osobnej tabeli
+
+Zgodnie z poleceniem, zrezegnowaliśmy z klasy Address i umieściliśmy dane adresowe w klasie Supplier. Wskazaliśmy, że to będzie nowa osobna tabela.
+
+- Supplier
+
+```java
+package zad1;
+
+import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@SecondaryTable(name = "Address")
+@SequenceGenerator(name = "Supplier_SEQ")
+class Supplier {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "Supplier_SEQ")
+    private int supplierID;
+
+    private String companyName;
+
+    @Column(table = "Address")
+    private String city;
+    @Column(table = "Address")
+    private String street;
+
+    @OneToMany(mappedBy = "supplier")
+    private List<Product> products = new ArrayList<>();
+
+    public Supplier() {}
+
+    public Supplier(String companyName, String city, String street) {
+        this.companyName = companyName;
+        this.city = city;
+        this.street = street;
+    }
+    public String getCity() {
+        return city;
+    }
+    public String getStreet() {
+        return street;
+    }
+    int getSupplierID() {
+        return supplierID;
+    }
+    String getCompanyName() {
+        return companyName;
+    }
+    List<Product> getProducts() {
+        return products;
+    }
+    void addProduct(Product product) {
+        this.products.add(product);
+    }
+    @Override
+    public String toString() { return companyName; }
+}
+```
+
+W wyniku takiej zmiany powstała nowa klasa-tabela Address:
+
+![](img/z83.png)
+
+Suppliers mają teraz trochę prostszą strukturę:
+
+![](img/z84.png)
+
+Schemat bazy danych:
+
+![](img/z85.png)
+
+Pojawiła się tabela Address, ponieważ zmapowaliśmy do niej jawnie niektóre polaa z Supplier.
+
+- SQL logi
+
+```sql
+Hibernate: 
+    create sequence Categories_SEQ start with 1 increment by 50
+Hibernate: 
+    create sequence Invoice_SEQ start with 1 increment by 50
+Hibernate: 
+    create sequence Products_SEQ start with 1 increment by 50
+Hibernate: 
+    create sequence Supplier_SEQ start with 1 increment by 50
+Hibernate: 
+    create table Address (
+        supplierID integer not null,
+        city varchar(255),
+        street varchar(255),
+        primary key (supplierID)
+    )
+Hibernate: 
+    create table Category (
+        categoryID integer not null,
+        name varchar(255),
+        primary key (categoryID)
+    )
+Hibernate: 
+    create table Invoice (
+        invoiceID integer not null,
+        invoiceNumber integer not null,
+        quantity integer not null,
+        primary key (invoiceID)
+    )
+Hibernate: 
+    create table Invoice_Product (
+        invoices_invoiceID integer not null,
+        products_productID integer not null,
+        primary key (invoices_invoiceID, products_productID)
+    )
+Hibernate: 
+    create table Product (
+        category_categoryID integer,
+        productID integer not null,
+        supplier_supplierID integer,
+        unitsInStock integer not null,
+        productName varchar(255),
+        primary key (productID)
+    )
+Hibernate: 
+    create table Supplier (
+        supplierID integer not null,
+        companyName varchar(255),
+        primary key (supplierID)
+    )
+Hibernate: 
+    alter table Address 
+       add constraint FKsg53al8nvbanq59s3pd6axyit 
+       foreign key (supplierID) 
+       references Supplier
+Hibernate: 
+    alter table Invoice_Product 
+       add constraint FK2mn08nt19nrqagr12grh5uho0 
+       foreign key (products_productID) 
+       references Product
+Hibernate: 
+    alter table Invoice_Product 
+       add constraint FKthlx5t7fv55fgsfp7ivt4fj6u 
+       foreign key (invoices_invoiceID) 
+       references Invoice
+Hibernate: 
+    alter table Product 
+       add constraint FK987q0koesbyk7oqky7lg431xr 
+       foreign key (category_categoryID) 
+       references Category
+Hibernate: 
+    alter table Product 
+       add constraint FK6em1ebdcyqbgxmglei6wanchp 
+       foreign key (supplier_supplierID) 
+       references Supplier
+--------------------
+What do you want to do?: 
+0. Add template
+1. Add product
+2. Add supplier
+3. Show products
+4. Show suppliers
+5. Show category
+6. Show products with Category
+7. Show Sold products on InvoiceID: 
+8. Show Invoices that product had been sold: 
+9. Show Product Category
+10. Exit
+--------------------
+0
+Hibernate: 
+    
+values
+    next value for Supplier_SEQ
+Hibernate: 
+    
+values
+    next value for Supplier_SEQ
+Hibernate: 
+    
+values
+    next value for Categories_SEQ
+Hibernate: 
+    
+values
+    next value for Categories_SEQ
+Hibernate: 
+    
+values
+    next value for Products_SEQ
+Hibernate: 
+    
+values
+    next value for Invoice_SEQ
+Hibernate: 
+    
+values
+    next value for Products_SEQ
+Hibernate: 
+    
+values
+    next value for Invoice_SEQ
+Hibernate: 
+    insert 
+    into
+        Supplier
+        (companyName, supplierID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Address
+        (city, street, supplierID) 
+    values
+        (?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Supplier
+        (companyName, supplierID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Address
+        (city, street, supplierID) 
+    values
+        (?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Supplier
+        (companyName, supplierID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Address
+        (city, street, supplierID) 
+    values
+        (?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Category
+        (name, categoryID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Category
+        (name, categoryID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Category
+        (name, categoryID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Product
+        (category_categoryID, productName, supplier_supplierID, unitsInStock, productID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice
+        (invoiceNumber, quantity, invoiceID) 
+    values
+        (?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Product
+        (category_categoryID, productName, supplier_supplierID, unitsInStock, productID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Product
+        (category_categoryID, productName, supplier_supplierID, unitsInStock, productID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Product
+        (category_categoryID, productName, supplier_supplierID, unitsInStock, productID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice
+        (invoiceNumber, quantity, invoiceID) 
+    values
+        (?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Product
+        (category_categoryID, productName, supplier_supplierID, unitsInStock, productID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice_Product
+        (invoices_invoiceID, products_productID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice_Product
+        (invoices_invoiceID, products_productID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice_Product
+        (invoices_invoiceID, products_productID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice_Product
+        (invoices_invoiceID, products_productID) 
+    values
+        (?, ?)
+Product added successfully.
+--------------------
+```
+
 ---
 
 # Zadanie 9 - dziedziczenie
