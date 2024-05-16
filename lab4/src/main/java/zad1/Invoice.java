@@ -48,10 +48,6 @@ public class Invoice {
         return quantity;
     }
 
-    public void updateProduct(int quantity) {
-        this.quantity += quantity;
-    }
-
     @Override
     public String toString() {
         return String.valueOf(invoiceNumber);

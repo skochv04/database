@@ -82,7 +82,7 @@ class Product{
             return;
         }
         unitsInStock -= quantity;
+        invoice.addProducts(this, quantity);
         invoices.add(invoice);
-        invoice.updateProduct(quantity);
     }
 }

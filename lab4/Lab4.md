@@ -725,7 +725,7 @@ System.out.println("Product added successfully.");
 break;
 ```
 
-SQL logi po wykonaniu kroku 0:
+- SQL logi po wykonaniu kroku 0:
 --------------------
 What do you want to do?:
 
@@ -1128,7 +1128,7 @@ Categories:
 
 ![](img/z42.png)
 
-SQL Logi po wykonaniu z main case 0:
+- SQL Logi po wykonaniu z main case 0:
 
 ```sql
 Hibernate: 
@@ -1678,7 +1678,7 @@ private static SessionFactory sessionFactory = null;
 }
 ```
 
-SQL Logi:
+- SQL Logi:
 
 ```sql
 Hibernate: 
@@ -2258,7 +2258,7 @@ http://java.sun.com/xml/ns/persistence/persistence_2)0.xsd" version="2.0">
 </persistence>
 ```
 
-SQL Logi:
+- SQL Logi:
 
 ```sql
 Hibernate: 
@@ -2524,7 +2524,9 @@ Jak widać, schemat nie różni się od pokazanego w zadaniu 5 (chyba że nazwam
 
 # Zadanie 7 - kaskady
 
-Do zamodelowania kaskadowego tworzenia faktur wraz z nowymi produktami, oraz produktów wraz z nową fakturą zmieniliśmy jedynie dekorator @ManyToMany w obydwu klasach i przystosowaliśmy metodę sprzedającą oraz metodę Main pod nowy model.
+Kaskadowe operację przewidywaliśmy jeszcze w rozwiązaniu poprzedniego zadania. W danym punkcie do zamodelowania kaskadowego tworzenia faktur wraz z nowymi produktami, oraz produktów wraz z nową fakturą zmieniliśmy jedynie dekorator @ManyToMany w obydwu klasach i przystosowaliśmy metodę sprzedającą oraz metodę Main pod nowy model.
+
+Wykorzystanie mechanizmu kaskadowego spowoduje, ze przy próbie utrwalenia Invoice'a kaskadowo zostaną utrwaleni wszyscy nieutrwaleni jeszcze Produkty powiązani relacją z tym Invoicem, i odwrotnie (skoro ustawiliśmy to w kodzie klasie).
 
 - Invoice (fragment starego kodu)
 
@@ -2532,13 +2534,6 @@ Do zamodelowania kaskadowego tworzenia faktur wraz z nowymi produktami, oraz pro
     ...
     @ManyToMany(cascade = CascadeType.PERSIST)
     private Set<Product> products = new HashSet<>();
-    ...
-
-    ...
-    public void addProducts(Product product, int quantity) {
-        products.add(product);
-        this.quantity += quantity;
-    }
     ...
 ```
 
@@ -2549,21 +2544,6 @@ Do zamodelowania kaskadowego tworzenia faktur wraz z nowymi produktami, oraz pro
     @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     private Set<Product> products = new HashSet<>();
     ...
-
-    ...
-    public void addProducts(Product product, int quantity) {
-        if (product.getUnitsInStock() < quantity) {
-            System.out.println("Unable to sell" + quantity + " products");
-            return;
-        }
-        products.add(product);
-        this.quantity += quantity;
-    }
-
-    public void updateProduct(int quantity) {
-        this.quantity += quantity;
-    }
-    ...
 ```
 - Product (fragment starego kodu)
 
@@ -2571,18 +2551,6 @@ Do zamodelowania kaskadowego tworzenia faktur wraz z nowymi produktami, oraz pro
     ...
     @ManyToMany(mappedBy = "products")
     private Set<Invoice> invoices = new HashSet<>();
-    ...
-
-    ...
-    public void sell(Invoice invoice, int quantity) {
-        if (unitsInStock < quantity) {
-            System.out.println("Unable to sell" + quantity + " products");
-            return;
-        }
-        unitsInStock -= quantity;
-        invoice.addProducts(this, quantity);
-        invoices.add(invoice);
-    }
     ...
 ```
 
@@ -2597,65 +2565,323 @@ Do zamodelowania kaskadowego tworzenia faktur wraz z nowymi produktami, oraz pro
     )
     private Set<Invoice> invoices = new HashSet<>();
     ...
-
-    ...
-        public void sell(Invoice invoice, int quantity) {
-        if (unitsInStock < quantity) {
-            System.out.println("Unable to sell" + quantity + " products");
-            return;
-        }
-        unitsInStock -= quantity;
-        invoices.add(invoice);
-        invoice.updateProduct(quantity);
-    }
-    ...
 ```
 
 - Main (fragment starego kodu)
 
 ```java
-    Product product1 = new Product("Laptop", 20);
-    Product product2 = new Product("Smartphone", 50);
-    Product product3 = new Product("Tablet", 30);
-    Product product4 = new Product("Books", 15);
-    Product product5 = new Product("Car", 10);
+    entityManager.persist(product1);
+    entityManager.persist(product2);
+    entityManager.persist(product3);
+    entityManager.persist(product4);
+    entityManager.persist(product5);
 
-    Invoice invoice1 = new Invoice(1001);
-    Invoice invoice2 = new Invoice(1002);
-    int soldNumber1 = 4;
-    int soldNumber2 = 6;
-    int soldNumber3 = 8;
-
-    product1.sell(invoice1, soldNumber1);
-    product2.sell(invoice1, soldNumber2);
-    product3.sell(invoice1, soldNumber3);
-    product4.sell(invoice2, soldNumber3);
-    product3.sell(invoice1, soldNumber1);
+    entityManager.persist(invoice1);
+    entityManager.persist(invoice2);
 ```
+
+## Spróbujmy przetestować zapisywanie do bazy nowych Invoce`ów nie ex plicite, a przez dodawanie ich w ramach Products
+Kod dla takiego testu:
 
 - Main (fragment nowego kodu)
 
 ```java
-    Product product1 = new Product("Laptop", 20);
-    Product product2 = new Product("Smartphone", 50);
-    Product product3 = new Product("Tablet", 30);
-    Product product4 = new Product("Books", 15);
-    Product product5 = new Product("Car", 10);
-
-    Invoice invoice1 = new Invoice(1001);
-    Invoice invoice2 = new Invoice(1002);
-    int soldNumber1 = 4;
-    int soldNumber2 = 6;
-    int soldNumber3 = 8;
-
-    product1.sell(invoice1, soldNumber1);
-    product2.sell(invoice1, soldNumber2);
-    invoice1.addProducts(product3, soldNumber3);
-    invoice2.addProducts(product4, soldNumber3);
-    product3.sell(invoice1, soldNumber1);
+    entityManager.persist(product1);
+    entityManager.persist(product2);
+    entityManager.persist(product3);
+    entityManager.persist(product4);
+    entityManager.persist(product5);
 ```
 
-Jak widać wyżej, w funkcji Main rozdzieliliśmy sprzedawane pozycję poprzedniego zadania: część będzie sprzedawana za pomocą metody sell() klasy Product, a część za pomocą metody addProduct() klasy Invoice. W wyniku musimy dostać takie same sprzedane pozycje, jak w poprzednim zadaniu.
+Products:
+
+![](img/z62.png)
+
+Invoices:
+
+![](img/z51.png)
+
+InvoiceProducts:
+
+![](img/z63.png)
+
+Produkty na fakturze o konkretnym numerze:
+
+![](img/z65.png)
+
+Faktury na których został sprzedany dany produkt:
+
+![](img/z64.png)
+
+Schemat bazy danych:
+
+![](img/schemat6.png)
+
+## Spróbujmy przetestować zapisywanie do bazy nowych produktów nie ex plicite, a przez dodawanie ich do Invoices
+Kod dla takiego testu:
+
+- Main (fragment nowego kodu)
+
+```java
+    entityManager.persist(invoice1);
+    entityManager.persist(invoice2);
+```
+
+Products:
+
+![](img/z62.png)
+
+Invoices:
+
+![](img/z51.png)
+
+InvoiceProducts:
+
+![](img/z63.png)
+
+Produkty na fakturze o konkretnym numerze:
+
+![](img/z65.png)
+
+Faktury na których został sprzedany dany produkt:
+
+![](img/z64.png)
+
+Schemat bazy danych:
+
+![](img/schemat6.png)
+
+W wyniku obydwu testów dostaliśmy takie same dane pozycje, jak w poprzednim zadaniu.
+
+- SQL logi
+
+```sql
+Hibernate: 
+    create sequence Categories_SEQ start with 1 increment by 50
+Hibernate: 
+    create sequence Invoice_SEQ start with 1 increment by 50
+Hibernate: 
+    create sequence Products_SEQ start with 1 increment by 50
+Hibernate: 
+    create sequence Supplier_SEQ start with 1 increment by 50
+Hibernate: 
+    create table Category (
+        categoryID integer not null,
+        name varchar(255),
+        primary key (categoryID)
+    )
+Hibernate: 
+    create table Invoice (
+        invoiceID integer not null,
+        invoiceNumber integer not null,
+        quantity integer not null,
+        primary key (invoiceID)
+    )
+Hibernate: 
+    create table Invoice_Product (
+        invoices_invoiceID integer not null,
+        products_productID integer not null,
+        primary key (invoices_invoiceID, products_productID)
+    )
+Hibernate: 
+    create table Product (
+        category_categoryID integer,
+        productID integer not null,
+        supplier_supplierID integer,
+        unitsInStock integer not null,
+        productName varchar(255),
+        primary key (productID)
+    )
+Hibernate: 
+    create table Supplier (
+        supplierID integer not null,
+        city varchar(255),
+        companyName varchar(255),
+        street varchar(255),
+        primary key (supplierID)
+    )
+Hibernate: 
+    alter table Invoice_Product 
+       add constraint FK2mn08nt19nrqagr12grh5uho0 
+       foreign key (products_productID) 
+       references Product
+Hibernate: 
+    alter table Invoice_Product 
+       add constraint FKthlx5t7fv55fgsfp7ivt4fj6u 
+       foreign key (invoices_invoiceID) 
+       references Invoice
+Hibernate: 
+    alter table Product 
+       add constraint FK987q0koesbyk7oqky7lg431xr 
+       foreign key (category_categoryID) 
+       references Category
+Hibernate: 
+    alter table Product 
+       add constraint FK6em1ebdcyqbgxmglei6wanchp 
+       foreign key (supplier_supplierID) 
+       references Supplier
+--------------------
+What do you want to do?: 
+0. Add template
+1. Add product
+2. Add supplier
+3. Show products
+4. Show suppliers
+5. Show category
+6. Show products with Category
+7. Show Sold products on InvoiceID: 
+8. Show Invoices that product had been sold: 
+9. Show Product Category
+10. Exit
+--------------------
+0
+Hibernate: 
+    
+values
+    next value for Supplier_SEQ
+Hibernate: 
+    
+values
+    next value for Supplier_SEQ
+Hibernate: 
+    
+values
+    next value for Categories_SEQ
+Hibernate: 
+    
+values
+    next value for Categories_SEQ
+Hibernate: 
+    
+values
+    next value for Invoice_SEQ
+Hibernate: 
+    
+values
+    next value for Products_SEQ
+Hibernate: 
+    
+values
+    next value for Products_SEQ
+Hibernate: 
+    
+values
+    next value for Invoice_SEQ
+Hibernate: 
+    insert 
+    into
+        Supplier
+        (city, companyName, street, supplierID) 
+    values
+        (?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Supplier
+        (city, companyName, street, supplierID) 
+    values
+        (?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Supplier
+        (city, companyName, street, supplierID) 
+    values
+        (?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Category
+        (name, categoryID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Category
+        (name, categoryID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Category
+        (name, categoryID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice
+        (invoiceNumber, quantity, invoiceID) 
+    values
+        (?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Product
+        (category_categoryID, productName, supplier_supplierID, unitsInStock, productID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Product
+        (category_categoryID, productName, supplier_supplierID, unitsInStock, productID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Product
+        (category_categoryID, productName, supplier_supplierID, unitsInStock, productID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice
+        (invoiceNumber, quantity, invoiceID) 
+    values
+        (?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Product
+        (category_categoryID, productName, supplier_supplierID, unitsInStock, productID) 
+    values
+        (?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice_Product
+        (invoices_invoiceID, products_productID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice_Product
+        (invoices_invoiceID, products_productID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice_Product
+        (invoices_invoiceID, products_productID) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        Invoice_Product
+        (invoices_invoiceID, products_productID) 
+    values
+        (?, ?)
+Product added successfully.
+--------------------
+```
 
 ---
 
