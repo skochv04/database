@@ -61,8 +61,8 @@ class MainJPA {
                     Supplier supplier3 = new Supplier("Global Traders", "789 Oak St", "Capital City");
 
                     Product product1 = new Product("Laptop", 20);
-                    Product product2 = new Product("Smartphone", 50);
-                    Product product3 = new Product("Tablet", 30);
+                    Product product2 = new Product("Tablet", 30);
+                    Product product3 = new Product("Smartphone", 50);
                     Product product4 = new Product("Books", 15);
                     Product product5 = new Product("Car", 10);
 
@@ -78,8 +78,8 @@ class MainJPA {
 
                     product1.sell(invoice1, soldNumber1);
                     product2.sell(invoice1, soldNumber2);
-                    product3.sell(invoice1, soldNumber3);
-                    product4.sell(invoice2, soldNumber3);
+                    invoice1.addProducts(product3, soldNumber3);
+                    invoice2.addProducts(product4, soldNumber3);
                     product3.sell(invoice1, soldNumber1);
 
 

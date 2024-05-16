@@ -17,7 +17,7 @@ public class Invoice {
     private int invoiceNumber;
     private int quantity = 0;
 
-    @ManyToMany(cascade = CascadeType.PERSIST)
+    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     private Set<Product> products = new HashSet<>();
 
     public Invoice() {
@@ -32,6 +32,10 @@ public class Invoice {
     }
 
     public void addProducts(Product product, int quantity) {
+        if (product.getUnitsInStock() < quantity) {
+            System.out.println("Unable to sell" + quantity + " products");
+            return;
+        }
         products.add(product);
         this.quantity += quantity;
     }
@@ -44,10 +48,12 @@ public class Invoice {
         return quantity;
     }
 
+    public void updateProduct(int quantity) {
+        this.quantity += quantity;
+    }
+
     @Override
     public String toString() {
-        return "Invoice{" +
-                "invoiceNumber=" + invoiceNumber +
-                '}';
+        return String.valueOf(invoiceNumber);
     }
 }

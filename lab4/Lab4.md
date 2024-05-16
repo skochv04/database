@@ -2524,6 +2524,139 @@ Jak widać, schemat nie różni się od pokazanego w zadaniu 5 (chyba że nazwam
 
 # Zadanie 7 - kaskady
 
+Do zamodelowania kaskadowego tworzenia faktur wraz z nowymi produktami, oraz produktów wraz z nową fakturą zmieniliśmy jedynie dekorator @ManyToMany w obydwu klasach i przystosowaliśmy metodę sprzedającą oraz metodę Main pod nowy model.
+
+- Invoice (fragment starego kodu)
+
+```java
+    ...
+    @ManyToMany(cascade = CascadeType.PERSIST)
+    private Set<Product> products = new HashSet<>();
+    ...
+
+    ...
+    public void addProducts(Product product, int quantity) {
+        products.add(product);
+        this.quantity += quantity;
+    }
+    ...
+```
+
+- Invoice (fragment nowego kodu)
+
+```java
+    ...
+    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
+    private Set<Product> products = new HashSet<>();
+    ...
+
+    ...
+    public void addProducts(Product product, int quantity) {
+        if (product.getUnitsInStock() < quantity) {
+            System.out.println("Unable to sell" + quantity + " products");
+            return;
+        }
+        products.add(product);
+        this.quantity += quantity;
+    }
+
+    public void updateProduct(int quantity) {
+        this.quantity += quantity;
+    }
+    ...
+```
+- Product (fragment starego kodu)
+
+```java
+    ...
+    @ManyToMany(mappedBy = "products")
+    private Set<Invoice> invoices = new HashSet<>();
+    ...
+
+    ...
+    public void sell(Invoice invoice, int quantity) {
+        if (unitsInStock < quantity) {
+            System.out.println("Unable to sell" + quantity + " products");
+            return;
+        }
+        unitsInStock -= quantity;
+        invoice.addProducts(this, quantity);
+        invoices.add(invoice);
+    }
+    ...
+```
+
+- Product (fragment nowego kodu)
+
+```java
+    ...
+    @ManyToMany(
+        cascade = CascadeType.PERSIST,
+        fetch = FetchType.EAGER,
+        mappedBy = "products"
+    )
+    private Set<Invoice> invoices = new HashSet<>();
+    ...
+
+    ...
+        public void sell(Invoice invoice, int quantity) {
+        if (unitsInStock < quantity) {
+            System.out.println("Unable to sell" + quantity + " products");
+            return;
+        }
+        unitsInStock -= quantity;
+        invoices.add(invoice);
+        invoice.updateProduct(quantity);
+    }
+    ...
+```
+
+- Main (fragment starego kodu)
+
+```java
+    Product product1 = new Product("Laptop", 20);
+    Product product2 = new Product("Smartphone", 50);
+    Product product3 = new Product("Tablet", 30);
+    Product product4 = new Product("Books", 15);
+    Product product5 = new Product("Car", 10);
+
+    Invoice invoice1 = new Invoice(1001);
+    Invoice invoice2 = new Invoice(1002);
+    int soldNumber1 = 4;
+    int soldNumber2 = 6;
+    int soldNumber3 = 8;
+
+    product1.sell(invoice1, soldNumber1);
+    product2.sell(invoice1, soldNumber2);
+    product3.sell(invoice1, soldNumber3);
+    product4.sell(invoice2, soldNumber3);
+    product3.sell(invoice1, soldNumber1);
+```
+
+- Main (fragment nowego kodu)
+
+```java
+    Product product1 = new Product("Laptop", 20);
+    Product product2 = new Product("Smartphone", 50);
+    Product product3 = new Product("Tablet", 30);
+    Product product4 = new Product("Books", 15);
+    Product product5 = new Product("Car", 10);
+
+    Invoice invoice1 = new Invoice(1001);
+    Invoice invoice2 = new Invoice(1002);
+    int soldNumber1 = 4;
+    int soldNumber2 = 6;
+    int soldNumber3 = 8;
+
+    product1.sell(invoice1, soldNumber1);
+    product2.sell(invoice1, soldNumber2);
+    invoice1.addProducts(product3, soldNumber3);
+    invoice2.addProducts(product4, soldNumber3);
+    product3.sell(invoice1, soldNumber1);
+```
+
+Jak widać wyżej, w funkcji Main rozdzieliliśmy sprzedawane pozycję poprzedniego zadania: część będzie sprzedawana za pomocą metody sell() klasy Product, a część za pomocą metody addProduct() klasy Invoice. W wyniku musimy dostać takie same sprzedane pozycje, jak w poprzednim zadaniu.
+
 ---
 
 # Zadanie 8 - embedded class

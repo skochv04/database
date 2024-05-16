@@ -25,7 +25,11 @@ class Product{
     @ManyToOne(cascade = CascadeType.PERSIST)
     private Category category;
 
-    @ManyToMany(mappedBy = "products")
+    @ManyToMany(
+            cascade = CascadeType.PERSIST,
+            fetch = FetchType.EAGER,
+            mappedBy = "products"
+    )
     private Set<Invoice> invoices = new HashSet<>();
 
     public Product() {}
@@ -78,7 +82,7 @@ class Product{
             return;
         }
         unitsInStock -= quantity;
-        invoice.addProducts(this, quantity);
         invoices.add(invoice);
+        invoice.updateProduct(quantity);
     }
 }
