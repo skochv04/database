@@ -1233,7 +1233,12 @@ Zoptymalizowany schemat bazy danych:
 
 # Zadanie 5 - modelowanie relacji wiele-do-wielu:
 
-- Product
+ - Tworzymy klasę Invoice reprezentującą fakturę konkretnego zamówienia, a następnie ustawiamy realcje wielu do wielu z tabelą Products. 
+ - Modelujemy relacje dodając do klasy Products HashSet z adnotacją ManyToMany reprezentujący w jakich fakturach znajduje się dany produkt
+
+
+
+- Product:
 
 ```java
 @Entity
@@ -1315,6 +1320,10 @@ class Product{
     }
 }
 ```
+
+
+  Z kolei w klasie Invoice tworzymy HashSet z adnotacjami ManyToMany oraz JoinTable aby baza danych poprawnie powiązała relację ManyToMany tworząc pomocniczą tabelę Invoice_Products (jest to łącznik pomiędzy dwoma tabelami, który w relacjach ManyToMany jest niezbędny) 
+
 
 - Invoice
 
