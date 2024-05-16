@@ -19,12 +19,10 @@ class Product{
     private String productName;
     private int unitsInStock;
 
-    @ManyToOne
-    @JoinColumn(name = "supplierID")
+    @ManyToOne(cascade = CascadeType.PERSIST)
     private Supplier supplier;
 
-    @ManyToOne
-    @JoinColumn(name = "categoryID")
+    @ManyToOne(cascade = CascadeType.PERSIST)
     private Category category;
 
     @ManyToMany(mappedBy = "products")
@@ -67,9 +65,7 @@ class Product{
 
     @Override
     public String toString() {
-        return "Product{" +
-                "productName='" + productName + '\'' +
-                '}';
+        return "productName";
     }
 
     public Set<Invoice> getInvoices() {

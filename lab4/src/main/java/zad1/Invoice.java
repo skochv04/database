@@ -17,12 +17,7 @@ public class Invoice {
     private int invoiceNumber;
     private int quantity = 0;
 
-    @ManyToMany
-    @JoinTable(
-            name = "Invoice_Products",
-            joinColumns = @JoinColumn(name = "invoiceID"),
-            inverseJoinColumns = @JoinColumn(name = "productID")
-    )
+    @ManyToMany(cascade = CascadeType.PERSIST)
     private Set<Product> products = new HashSet<>();
 
     public Invoice() {
