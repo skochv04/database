@@ -4,7 +4,7 @@ This repository includes completed tasks from the databases course at AGH Univer
 ## [Oracle PL/Sql](lab1/Lab1.md)
 This database project for Oracle PL/SQL includes views, functions, procedures, and triggers for managing trips, reservations, and status change logs.
 
-## MongoDB [part 1](lab2/Lab2-cw.md) | [part 2](lab2/Lab2-cwd.md)
+## MongoDB [[part 1]](lab2/Lab2-cw.md) [[part 2]](lab2/Lab2-cwd.md)
 The project involves querying a MongoDB database using Aggregation Pipeline, focusing on retrieving business, review, and user data through views, functions, and data aggregation operations.
 
 ## [Entity Framework](lab3/Lab3.md)
